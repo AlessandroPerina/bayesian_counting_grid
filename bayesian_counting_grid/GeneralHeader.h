@@ -52,7 +52,7 @@ const int WD_COLS = 5;
 const int Z = 2000;
 const uword LOCS = CG_ROWS*CG_COLS*Z;
 const double BASE_PRIOR = 0.1;
-map<int, float> gammaLookUp; // Poi eliminalo
+map<float, float> gammaLookUp; // Poi eliminalo
 
 /*
 #define int DIM 2

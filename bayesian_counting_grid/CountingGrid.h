@@ -11,18 +11,20 @@ public:
 	CountingGrid( ucube ); // Prende in ingresso un prior predefinito nel main
 	~CountingGrid();
 
-	void addDatapoint( Datapoint* );
-	void removeDatapoint( Datapoint* );
-	fcube sumAllWindows();
+	int addDatapoint( Datapoint* );
+	int removeDatapoint( Datapoint* );
+	int sumAllWindows();
+	int computeLogGammaCG();
+	int computeLogGammaCG( map<int, arma::sp_fmat> );
 
-	double locationPosterior( Datapoint* );
+	fmat locationPosterior( Datapoint* );
 	double computeEnergy( Datapoint* );
 
 private:
 	fcube a;
 	fcube Aw;
 	fcube logG;
-
+	fmat logGsum;
 };
 
 #endif

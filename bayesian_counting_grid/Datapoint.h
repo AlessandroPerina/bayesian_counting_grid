@@ -17,7 +17,9 @@ public:
 	int getnUniWords();
 	int getRow();
 	int getCol();
+	urowvec getWords();
 	mapdata getCountsDict();
+	int getSingleCountsDict(int);
 	frowvec getCountsArray();
 	map<int, sp_fmat> getTokenLoc();
 

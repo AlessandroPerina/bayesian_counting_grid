@@ -101,4 +101,13 @@ map<int, sp_fmat> Datapoint::getTokenLoc()
 	return this->tokenLoc;
 }
 
+urowvec Datapoint::getWords()
+{
+	return this->words;
+}
+
+int Datapoint::getSingleCountsDict(int id)
+{
+	return this->countsDict[id];
+}
 

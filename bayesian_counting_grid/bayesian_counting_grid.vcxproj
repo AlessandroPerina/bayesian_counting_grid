@@ -52,7 +52,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\opencv\build\include;C:\Program Files\boost\boost_1_55_0\;C:\Python27\include;C:\Program Files (x86)\Inkscape\python\Lib\site-packages\numpy\core\include;C:\Users\APerina\Documents\Visual Studio 2010\Armadillo\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Python27\Lib\site-packages\numpy\core\include;C:\local\boost_1_55_0;C:\Python27\include;C:\Program Files (x86)\Inkscape\python\Lib\site-packages\numpy\core\include;C:\Users\APerina\Documents\Libraries\LAPACK;C:\Users\APerina\Documents\Libraries\BLAS;C:\Users\APerina\Documents\Libraries\armadillo-4.300.3\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
