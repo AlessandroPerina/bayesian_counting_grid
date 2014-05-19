@@ -3,7 +3,6 @@
 
 #include "GeneralHeader.h" // Da fare
 
-
 class Datapoint {
 
 public:

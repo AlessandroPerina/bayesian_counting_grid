@@ -1,14 +1,15 @@
 #ifndef COUNTINGGRID_H
 #define COUNTINGGRID_H
 
-#include "GeneralHeader.h" // Da fare
+#include "GeneralHeader.h"
+#include "Datapoint.h"
 
 class CountingGrid
 {
 public:
 	// Costruttori
-	CountingGrid(); // Usa il prior uguale per tutte le locazioni definito in generalHeader
-	CountingGrid( ucube ); // Prende in ingresso un prior predefinito nel main
+	CountingGrid(map<float, float>* ); // Usa il prior uguale per tutte le locazioni definito in generalHeader
+	CountingGrid(map<float, float>*, ucube); // Prende in ingresso un prior predefinito nel main
 	~CountingGrid();
 
 	int addDatapoint( Datapoint* );
@@ -25,6 +26,7 @@ private:
 	fcube Aw;
 	fcube logG;
 	fmat logGsum;
+	map<float, float>* gammaLookUp;
 };
 
 #endif

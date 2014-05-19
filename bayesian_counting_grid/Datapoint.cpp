@@ -50,6 +50,9 @@ Datapoint::Datapoint(mapdata counts, char* name)
 	this->nTokens = int(arma::sum( this->countsArray ));
 }
 
+Datapoint::~Datapoint()
+{}
+
 
 void Datapoint::setLocation( int row, int col )
 {
