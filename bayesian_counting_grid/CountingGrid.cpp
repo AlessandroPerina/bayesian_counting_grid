@@ -15,16 +15,16 @@ CountingGrid::CountingGrid(map<float, float>* gl)
 	fcube tmp = fcube(CG_ROWS+WD_ROWS-1, CG_COLS+WD_COLS-1, Z);
 	tmp.fill(0);
 	tmp.tube(0, CG_ROWS - 1, 0, CG_COLS - 1) = a;
-	tmp.tube(0, CG_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 1) = a.tube(0, CG_ROWS-1, 0, WD_COLS - 2);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 1, 0, CG_COLS - 1) = a.tube(0, WD_ROWS - 2, 0, CG_COLS - 1);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 1) = a.tube(0, WD_ROWS - 2, WD_COLS - 2);
+	tmp.tube(0, CG_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, CG_ROWS-1, 0, WD_COLS - 2);
+	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, 0, CG_COLS - 1) = a.tube(0, WD_ROWS - 2, 0, CG_COLS - 1);
+	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, WD_ROWS - 2, WD_COLS - 2);
 
 	for (int r = 0; r < CG_ROWS; r++)
 	{
 		for (int c = 0; c < CG_COLS; c++)
 		{
 			fcube tmp2 = reshape(tmp.tube(r, r + WD_ROWS - 1, c, c + WD_ROWS - 1), WD_ROWS*WD_COLS, Z, 1);
-			this->Aw.tube(r, r, c, c) = sum(tmp2.slice(0), 0);
+			this->Aw.tube(r, r, c, c) = arma::accu(tmp2.slice(0));
 		}
 	}
 
@@ -85,26 +85,18 @@ CountingGrid::CountingGrid( map<float,float>* gl, ucube prior)
 
 	// pad a
 	fcube tmp = fcube(CG_ROWS + WD_ROWS - 1, CG_COLS + WD_COLS - 1, Z);
+	tmp.fill(0);
 	tmp.tube(0, CG_ROWS - 1, 0, CG_COLS - 1) = a;
-	tmp.tube(0, CG_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 1) = a.tube(0, CG_ROWS - 1, 0, WD_COLS - 2);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 1, 0, CG_COLS - 1) = a.tube(0, WD_ROWS - 2, 0, CG_COLS - 1);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 1) = a.tube(0, WD_ROWS - 2, WD_COLS - 2);
+	tmp.tube(0, CG_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, CG_ROWS - 1, 0, WD_COLS - 2);
+	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, 0, CG_COLS - 1) = a.tube(0, WD_ROWS - 2, 0, CG_COLS - 1);
+	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, WD_ROWS - 2, WD_COLS - 2);
 
 	for (int r = 0; r < CG_ROWS; r++)
 	{
 		for (int c = 0; c < CG_COLS; c++)
 		{
 			fcube tmp2 = reshape(tmp.tube(r, r + WD_ROWS - 1, c, c + WD_ROWS - 1), WD_ROWS*WD_COLS, Z, 1);
-			this->Aw.tube(r,r,c,c) = sum( tmp2.slice(0), 0);
-		}
-	}
-
-	for (int r = 0; r < CG_ROWS; r++)
-	{
-		for (int c = 0; c < CG_COLS; c++)
-		{
-			fcube tmp2 = reshape(tmp.tube(r, r + WD_ROWS - 1, c, c + WD_ROWS - 1), WD_ROWS*WD_COLS, Z, 1);
-			this->Aw.tube(r, r, c, c) = sum(tmp2.slice(0), 0);
+			this->Aw.tube(r, r, c, c) = arma::accu(tmp2.slice(0));
 		}
 	}
 
@@ -380,6 +372,21 @@ int CountingGrid::computeLogGammaCG()
 			}
 		}
 	}
+	return 0;
+}
+
+
+int CountingGrid::printCg(int sl)
+{
+	(this->a.slice(sl)).print("--> pi: ");
+	(this->Aw.slice(sl)).print("--> h: ");
+	(this->logG.slice(sl)).print("--> logGamma( h ): ");
+	return 0;
+}
+
+int CountingGrid::saveCg(string path)
+{
+	this->a.save(path + "\pi.mat", arma_ascii);
 	return 0;
 }
 

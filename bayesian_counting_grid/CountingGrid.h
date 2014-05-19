@@ -21,6 +21,9 @@ public:
 	fmat locationPosterior( Datapoint* );
 	double computeEnergy( Datapoint* );
 
+	int printCg(int);
+	int saveCg(string);
+
 private:
 	fcube a;
 	fcube Aw;
