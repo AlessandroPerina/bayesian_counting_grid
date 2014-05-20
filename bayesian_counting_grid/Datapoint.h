@@ -8,11 +8,11 @@ class Datapoint {
 public:
 	// Costruttori
 	Datapoint( mapdata );
-	Datapoint( mapdata, char* );
+	Datapoint( mapdata, string );
 	virtual ~Datapoint();
 	void setLocation( int, int );
 	void setTokenLocations( map<int, sp_fmat > );
-	char* getName();
+	string getName();
 	int getnUniWords();
 	int getRow();
 	int getCol();
@@ -21,10 +21,10 @@ public:
 	int getSingleCountsDict(int);
 	frowvec getCountsArray();
 	map<int, sp_fmat> getTokenLoc();
-
+        
 private:
 	int isAssigned;
-	char* pointName;
+	string pointName;
 	int rowMap;
 	int colMap;
 	int nUniWords; // numero di parole presenti nel documento

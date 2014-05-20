@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <ctime>
 #include <cmath>
 #include <algorithm>
@@ -38,7 +39,9 @@
 
 //class Dataframe;
 class Datapoint;
+class DataReader;
 class CountingGrid;
+
 
 using namespace std;
 using namespace arma;

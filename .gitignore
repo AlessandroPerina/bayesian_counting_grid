@@ -213,3 +213,10 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+# Netbeans config
+bayesian_counting_grid/nbproject/
+bayesian_counting_grid/nbproject/private/
+*.mk
+bayesian_counting_grid/Makefile
+bayesian_counting_grid/.dep.inc
