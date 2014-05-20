@@ -218,4 +218,5 @@ pip-log.txt
 bayesian_counting_grid/nbproject/
 bayesian_counting_grid/nbproject/private/
 *.mk
-Makefile
+bayesian_counting_grid/Makefile
+bayesian_counting_grid/.dep.inc
