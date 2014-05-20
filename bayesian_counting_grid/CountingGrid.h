@@ -8,8 +8,8 @@ class CountingGrid
 {
 public:
 	// Costruttori
-	CountingGrid(map<float, float>* ); // Usa il prior uguale per tutte le locazioni definito in generalHeader
-	CountingGrid(map<float, float>*, ucube); // Prende in ingresso un prior predefinito nel main
+	CountingGrid(map<int, float>* ); // Usa il prior uguale per tutte le locazioni definito in generalHeader
+	// CountingGrid(map<int, float>*, ucube); // Prende in ingresso un prior predefinito nel main
 	~CountingGrid();
 
 	int addDatapoint( Datapoint* );
@@ -24,12 +24,16 @@ public:
 	int printCg(int);
 	int saveCg(string);
 
+	fcube get_a();
+	fcube get_Aw();
+	fcube get_logG();
+
 private:
 	fcube a;
 	fcube Aw;
 	fcube logG;
 	fmat logGsum;
-	map<float, float>* gammaLookUp;
+	map<int, float>* gammaLookUp;
 };
 
 #endif
