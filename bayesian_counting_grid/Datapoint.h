@@ -21,7 +21,7 @@ public:
 	int getSingleCountsDict(int);
 	frowvec getCountsArray();
 	map<int, sp_fmat> getTokenLoc();
-
+        
 private:
 	int isAssigned;
 	char* pointName;

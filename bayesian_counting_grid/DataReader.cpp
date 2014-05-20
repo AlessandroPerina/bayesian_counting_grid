@@ -1,14 +1,14 @@
 #include "DataReader.h"
 
-Datapoint::Datapoint(const char* filename) {
+DataReader::DataReader(const char* data_filename) {
     
     this->data_filename = data_filename;
 }
 
-Datapoint::~DataReader() {
+DataReader::~DataReader() {
 }
 
-int Datapoint::loadData(){
+int DataReader::loadData(){
     
     FILE *fileptr;
     int length, count, word, n, nd, nw, corpus_total = 0;

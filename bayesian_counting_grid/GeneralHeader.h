@@ -39,6 +39,7 @@
 //class Dataframe;
 class Datapoint;
 class CountingGrid;
+class DataReader;
 
 using namespace std;
 using namespace arma;
