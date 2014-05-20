@@ -2,29 +2,38 @@
 // #include "Datapoint.h"
 // #include "GeneralHeader.h"
 
-CountingGrid::CountingGrid(map<float, float>* gl)
+CountingGrid::CountingGrid(map<int, float>* gl)
 {
 	this->gammaLookUp = gl;
+
 	this->a = fcube(CG_ROWS, CG_COLS, Z);
-	this->a.fill(BASE_PRIOR);
+	this->a = floor( 5 * arma::randu<fcube>(CG_ROWS, CG_COLS, Z)) + BASE_PRIOR;
+	// this->a.fill(BASE_PRIOR);
 
 	this->Aw = fcube(CG_ROWS, CG_COLS, Z);
 	this->Aw.fill(0);
+
+	this->logG = fcube(CG_ROWS, CG_COLS, Z);
+	this->logG.fill(0);
+
+	this->logGsum = fmat(CG_ROWS, CG_COLS);
+	this->logGsum.fill(0);
 
 	// pad a
 	fcube tmp = fcube(CG_ROWS+WD_ROWS-1, CG_COLS+WD_COLS-1, Z);
-	tmp.fill(0);
-	tmp.tube(0, CG_ROWS - 1, 0, CG_COLS - 1) = a;
-	tmp.tube(0, CG_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, CG_ROWS-1, 0, WD_COLS - 2);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, 0, CG_COLS - 1) = a.tube(0, WD_ROWS - 2, 0, CG_COLS - 1);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, WD_ROWS - 2, WD_COLS - 2);
+	tmp.fill(1);
+	tmp(span(0, CG_ROWS - 1), span(0, CG_COLS - 1), span::all ) = this->a(span(0, CG_ROWS - 1), span(0, CG_COLS - 1), span::all);
+	tmp(span(0, CG_ROWS - 1), span(CG_COLS, CG_COLS + WD_COLS - 2), span::all) = this->a(span(0, CG_ROWS - 1), span(0, WD_COLS - 2), span::all);
+	tmp(span(CG_ROWS, CG_ROWS + WD_ROWS - 2), span(0, CG_COLS - 1), span::all) = this->a(span(0, WD_ROWS - 2), span(0, CG_COLS - 1), span::all);
+	tmp( span(CG_ROWS, CG_ROWS + WD_ROWS - 2), span(CG_COLS, CG_COLS + WD_COLS - 2), span::all) = this->a(span(0, WD_ROWS - 2), span(0,WD_COLS - 2), span::all);
 
 	for (int r = 0; r < CG_ROWS; r++)
 	{
 		for (int c = 0; c < CG_COLS; c++)
 		{
-			fcube tmp2 = reshape(tmp.tube(r, r + WD_ROWS - 1, c, c + WD_ROWS - 1), WD_ROWS*WD_COLS, Z, 1);
-			this->Aw.tube(r, r, c, c) = arma::accu(tmp2.slice(0));
+			fcube tmp2 = reshape(tmp( span(r, r + WD_ROWS - 1), span(c, c + WD_COLS - 1),span::all), WD_ROWS*WD_COLS, Z, 1);
+			fvec tmp3 = sum(tmp2.slice(0),0);
+			this->Aw(span(r, r), span(c, c), span::all) = tmp3;
 		}
 	}
 
@@ -36,116 +45,50 @@ CountingGrid::CountingGrid(map<float, float>* gl)
 			// Calcolo logGamma
 			for (int z = 0; z < Z; z++)
 			{
-				map<float, float>::iterator it;
-				it = this->gammaLookUp->find(this->Aw(r, c, z));
+				map<int, float>::iterator it;
+				float tmpA = this->Aw(r, c, z);
+				float costa = WD_ROWS*WD_COLS*BASE_PRIOR;
+				int key = (int)round(this->Aw(r, c, z) - WD_ROWS*WD_COLS*BASE_PRIOR);
+				it = this->gammaLookUp->find( key );
 				if (it == this->gammaLookUp->end()){
 					// Calcola la nuova gamma
 					float newGamma = lgammaf(this->Aw(r, c, z));
 					// Aggiungila alla lookup table
-					this->gammaLookUp->insert(std::pair<float, float>(this->Aw(r, c, z), newGamma));
+					this->gammaLookUp->insert(std::pair<int, float>(key, newGamma));
 					// Aggiorna la Counting Grid
-					this->logG.at(r, c, z) = newGamma;
+					this->logG(r, c, z) = newGamma;
 				}
 				else{
 					// Aggiorna la Counting Grid
-					this->logG.at(r, c, z) = it->second;
+					this->logG(r, c, z) = it->second;
 				}
 			}
 
 			// Calcolo logGammaSum
-			map<float, float>::iterator it;
-			float sumA = sum(fvec(this->Aw.tube(r, r, c, c)));
-			it = this->gammaLookUp->find(sumA);
+			map<int, float>::iterator it;
+			fvec tmp1 = this->Aw(span(r, r), span(c, c), span::all);
+			tmp1 = this->Aw(span(r, r), span(c, c), span::all) - WD_ROWS*WD_COLS*BASE_PRIOR;
+			float sumTmp1 = sum(fvec(this->Aw(span(r, r), span(c, c), span::all)));
+
+			int keySum = (int)round(sum(fvec(this->Aw(span(r, r), span(c, c), span::all)) - WD_ROWS*WD_COLS*BASE_PRIOR));
+			float trueValue = sum(fvec(this->Aw(span(r, r), span(c, c), span::all)));
+
+			it = this->gammaLookUp->find(keySum);
 			if (it == this->gammaLookUp->end()){
 				// Calcola la nuova gamma
-				float newGamma = lgammaf(sumA);
+				float newGamma = lgammaf(trueValue);
 				// Aggiungila alla lookup table
-				this->gammaLookUp->insert(std::pair<float, float>(sumA, newGamma));
+				this->gammaLookUp->insert(std::pair<int, float>(keySum, newGamma));
 				// Aggiorna la Counting Grid
-				this->logGsum.at(r, c ) = newGamma;
+				this->logGsum(r, c ) = newGamma;
 			}
 			else{
 				// Aggiorna la Counting Grid
-				this->logGsum.at(r, c) = it->second;
+				this->logGsum(r, c) = it->second;
 			}
 
 		}
 	}
-
-
-}
-
-CountingGrid::CountingGrid( map<float,float>* gl, ucube prior)
-{
-	this->gammaLookUp = gl;
-	this->a = arma::conv_to<fcube>::from(prior);
-
-	this->Aw = fcube(CG_ROWS, CG_COLS, Z);
-	this->Aw.fill(0);
-
-	// pad a
-	fcube tmp = fcube(CG_ROWS + WD_ROWS - 1, CG_COLS + WD_COLS - 1, Z);
-	tmp.fill(0);
-	tmp.tube(0, CG_ROWS - 1, 0, CG_COLS - 1) = a;
-	tmp.tube(0, CG_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, CG_ROWS - 1, 0, WD_COLS - 2);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, 0, CG_COLS - 1) = a.tube(0, WD_ROWS - 2, 0, CG_COLS - 1);
-	tmp.tube(CG_ROWS, CG_ROWS + WD_ROWS - 2, CG_COLS, CG_COLS + WD_COLS - 2) = a.tube(0, WD_ROWS - 2, WD_COLS - 2);
-
-	for (int r = 0; r < CG_ROWS; r++)
-	{
-		for (int c = 0; c < CG_COLS; c++)
-		{
-			fcube tmp2 = reshape(tmp.tube(r, r + WD_ROWS - 1, c, c + WD_ROWS - 1), WD_ROWS*WD_COLS, Z, 1);
-			this->Aw.tube(r, r, c, c) = arma::accu(tmp2.slice(0));
-		}
-	}
-
-	// Inefficiente ma va fatto una volta sola
-	for (int r = 0; r < CG_ROWS; r++)
-	{
-		for (int c = 0; c < CG_COLS; c++)
-		{
-			// Calcolo logGamma
-			for (int z = 0; z < Z; z++)
-			{
-				map<float, float>::iterator it;
-				it = this->gammaLookUp->find(this->Aw(r, c, z));
-				if (it == this->gammaLookUp->end()){
-					// Calcola la nuova gamma
-					float newGamma = lgammaf(this->Aw(r, c, z));
-					// Aggiungila alla lookup table
-					this->gammaLookUp->insert(std::pair<float, float>(this->Aw(r, c, z), newGamma));
-					// Aggiorna la Counting Grid
-					this->logG.at(r, c, z) = newGamma;
-				}
-				else{
-					// Aggiorna la Counting Grid
-					this->logG.at(r, c, z) = it->second;
-				}
-			}
-
-			// Calcolo logGammaSum
-			map<float, float>::iterator it;
-			float sumA = sum(fvec(this->Aw.tube(r, r, c, c)));
-			it = this->gammaLookUp->find(sumA);
-			if (it == this->gammaLookUp->end()){
-				// Calcola la nuova gamma
-				float newGamma = lgammaf(sumA);
-				// Aggiungila alla lookup table
-				this->gammaLookUp->insert(std::pair<float, float>(sumA, newGamma));
-				// Aggiorna la Counting Grid
-				this->logGsum.at(r, c) = newGamma;
-			}
-			else{
-				// Aggiorna la Counting Grid
-				this->logGsum.at(r, c) = it->second;
-			}
-
-		}
-	}
-
-
-
 }
 
 CountingGrid::~CountingGrid()
@@ -159,19 +102,20 @@ int CountingGrid::sumAllWindows()
 	this->Aw.fill(0);
 
 	fcube padded = fcube(CG_ROWS + WD_ROWS - 1, CG_COLS + WD_COLS - 1, Z);
-	padded.tube(0, CG_ROWS - 1, 0, CG_COLS - 1) = a;
-	padded.tube(0, CG_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 1) = a.tube(0, CG_ROWS - 1, 0, WD_COLS - 2);
-	padded.tube(CG_ROWS, CG_ROWS + WD_ROWS - 1, 0, CG_COLS - 1) = a.tube(0, WD_ROWS - 2, 0, CG_COLS - 1);
-	padded.tube(CG_ROWS, CG_ROWS + WD_ROWS - 1, CG_COLS, CG_COLS + WD_COLS - 1) = a.tube(0, WD_ROWS - 2, WD_COLS - 2);
+	padded(span(0, CG_ROWS - 1), span(0, CG_COLS - 1), span::all) = this->a(span(0, CG_ROWS - 1), span(0, CG_COLS - 1), span::all);
+	padded(span(0, CG_ROWS - 1), span(CG_COLS, CG_COLS + WD_COLS - 2), span::all) = this->a(span(0, CG_ROWS - 1), span(0, WD_COLS - 2), span::all);
+	padded(span(CG_ROWS, CG_ROWS + WD_ROWS - 2), span(0, CG_COLS - 1), span::all) = this->a(span(0, WD_ROWS - 2), span(0, CG_COLS - 1), span::all);
+	padded(span(CG_ROWS, CG_ROWS + WD_ROWS - 2), span(CG_COLS, CG_COLS + WD_COLS - 2), span::all) = this->a(span(0, WD_ROWS - 2), span(0, WD_COLS - 2), span::all);
 
 	for (int r = 0; r < CG_ROWS; r++)
 	{
 		for (int c = 0; c < CG_COLS; c++)
 		{
-			fcube tmp2 = reshape(padded.tube(r, r + WD_ROWS - 1, c, c + WD_ROWS - 1), WD_ROWS*WD_COLS, Z, 1);
-			this->Aw.tube(r, r, c, c) = sum(tmp2.slice(0), 0);
+			fcube tmp2 = reshape(padded(span(r, r + WD_ROWS - 1), span(c, c + WD_COLS - 1), span::all), WD_ROWS*WD_COLS, Z, 1);
+			this->Aw(span(r, r), span(c, c), span::all).fill((float)arma::accu(tmp2.slice(0)));
 		}
 	}
+
 	return 0;
 }
 
@@ -219,6 +163,7 @@ fmat CountingGrid::locationPosterior(Datapoint* dp)
 	T3 = arma::accu(T3) - T3;
 
 	//	fmat(CG_COLS, CG_ROWS, fill::zeros);
+	int accumT2Key = 0;
 	float accumT2 = 0;
 	// itera solo sulle features che ha il campione corrente
 	for (int r = 0; r < CG_ROWS; r++)
@@ -226,17 +171,20 @@ fmat CountingGrid::locationPosterior(Datapoint* dp)
 		for (int c = 0; c < CG_COLS; c++)
 		{
 
-			accumT2 = sum(fvec(Aw.tube(r, r, c, c)));
+			accumT2Key = (int)round(sum(fvec(Aw(span(r, r), span(c, c), span::all) - WD_ROWS*WD_COLS*BASE_PRIOR)));
+			accumT2 = sum(fvec(Aw(span(r, r), span(c, c), span::all) ));
 			for (urowvec::iterator featureIt = dp->getWords().begin(); featureIt != dp->getWords().end(); featureIt++)
 			{		
+				accumT2Key += dp->getSingleCountsDict(*featureIt);
 				accumT2 += float(dp->getSingleCountsDict(*featureIt));
-
-				map<float, float>::iterator itLogGamma;
-				float tmpCount = Aw[r, c, *featureIt] + float(dp->getSingleCountsDict(*featureIt));
-				itLogGamma = this->gammaLookUp->find(tmpCount);
+				// sn qui
+				map<int, float>::iterator itLogGamma;
+				int keyTmpCount = (int)round(Aw(r, c, *featureIt) - WD_ROWS*WD_COLS*BASE_PRIOR + dp->getSingleCountsDict(*featureIt));
+				float trueCount = Aw(r, c, *featureIt) + float(dp->getSingleCountsDict(*featureIt));
+				itLogGamma = this->gammaLookUp->find(keyTmpCount);
 				if (itLogGamma == this->gammaLookUp->end()){
-					float newGamma = lgammaf(tmpCount);
-					this->gammaLookUp->insert(std::pair<float, float>(tmpCount, newGamma));
+					float newGamma = lgammaf(trueCount);
+					this->gammaLookUp->insert(std::pair<float, float>(keyTmpCount, newGamma));
 					T1(r, c) = T1(r, c) - this->logG(r, c, *featureIt) + newGamma;
 				}
 				else{
@@ -245,11 +193,11 @@ fmat CountingGrid::locationPosterior(Datapoint* dp)
 
 			}
 
-			map<float, float>::iterator itLogGamma;
-			itLogGamma = this->gammaLookUp->find(accumT2);
+			map<int, float>::iterator itLogGamma;
+			itLogGamma = this->gammaLookUp->find(accumT2Key);
 			if (itLogGamma == this->gammaLookUp->end()){
 				float newGamma = lgammaf(accumT2);
-				this->gammaLookUp->insert(std::pair<float, float>(accumT2, newGamma));
+				this->gammaLookUp->insert(std::pair<int, float>(accumT2Key, newGamma));
 				T2(r, c) = newGamma;
 			}
 			else{
@@ -295,33 +243,35 @@ int CountingGrid::computeLogGammaCG(map<int, arma::sp_fmat> tokenLoc)
 			int tmpRow = *itv % CG_ROWS;
 			int tmpCol = (int)floor(*itv / CG_ROWS) % CG_COLS;
 
-
-			map<float, float>::iterator itLogGamma;
-			itLogGamma = this->gammaLookUp->find(Aw(tmpRow, tmpCol, featureIt->first));
+			map<int, float>::iterator itLogGamma;
+			int key = (int) this->Aw(tmpRow, tmpCol, featureIt->first) - BASE_PRIOR;
+			itLogGamma = this->gammaLookUp->find(key);
 			if (itLogGamma == this->gammaLookUp->end()){
-				float newGamma = lgammaf(Aw(tmpRow, tmpCol, featureIt->first));
-				this->gammaLookUp->insert(std::pair<float, float>(Aw(tmpRow, tmpCol, featureIt->first), newGamma));
-				this->logG.at(tmpRow,tmpCol,featureIt->first) = newGamma;
+				float newGamma = lgammaf(this->Aw(tmpRow, tmpCol, featureIt->first));
+				this->gammaLookUp->insert(std::pair<int, float>(key, newGamma));
+				this->logG(tmpRow,tmpCol,featureIt->first) = newGamma;
 			}
 			else{
-				this->logG.at(tmpRow, tmpCol, featureIt->first) = itLogGamma->second;
+				this->logG(tmpRow, tmpCol, featureIt->first) = itLogGamma->second;
 			}
 
 			// Vado a modificare la variabile logGsum.
 			itLogGamma = this->gammaLookUp->begin(); // Risposto all'inizio l'iteratore
-			float sumA = sum(fvec(Aw.tube(tmpRow, tmpRow, tmpCol, tmpCol)));
-			itLogGamma = this->gammaLookUp->find(sumA);
+			int keySumA = (int)sum(fvec(this->Aw(span(tmpRow, tmpRow), span(tmpCol, tmpCol), span::all)) - BASE_PRIOR);
+			int sumA = sum(fvec(this->Aw(span(tmpRow, tmpRow), span(tmpCol, tmpCol), span::all)));
+
+			itLogGamma = this->gammaLookUp->find(keySumA);
 			if (itLogGamma == this->gammaLookUp->end()){
 				// Calcola la nuova gamma
 				float newGamma = lgammaf(sumA);
 				// Aggiungila alla lookup table
-				this->gammaLookUp->insert(std::pair<float, float>(sumA, newGamma));
+				this->gammaLookUp->insert(std::pair<int, float>(keySumA, newGamma));
 				// Aggiorna la Counting Grid
-				this->logGsum.at(tmpRow, tmpCol) = newGamma;
+				this->logGsum(tmpRow, tmpCol) = newGamma;
 			}
 			else{
 				// Aggiorna la Counting Grid
-				this->logGsum.at(tmpRow, tmpCol) = itLogGamma->second;
+				this->logGsum(tmpRow, tmpCol) = itLogGamma->second;
 			}
 
 		}
@@ -333,42 +283,46 @@ int CountingGrid::computeLogGammaCG()
 {
 	for (int r = 0; r < CG_ROWS; r++)
 	{
+		map<int, float>::iterator itLogGamma;
 		for (int c = 0; c < CG_COLS; c++)
 		{
 			for (int z = 0; z < Z; z++)
 			{
-				map<float, float>::iterator it;
-				it = this->gammaLookUp->find(this->Aw(r, c, z));
-				if (it == this->gammaLookUp->end()){
+				itLogGamma = this->gammaLookUp->begin();
+				int key = (int) this->Aw(r, c, z) - BASE_PRIOR;
+				itLogGamma = this->gammaLookUp->find(key);
+				if (itLogGamma == this->gammaLookUp->end()){
 
 					// Calcola la nuova gamma
 					float newGamma = lgammaf(this->Aw(r, c, z));
 					// Aggiungila alla lookup table
-					this->gammaLookUp->insert(std::pair<float, float>(this->Aw(r, c, z), newGamma));
+					this->gammaLookUp->insert(std::pair<float, float>(key, newGamma));
 					// Aggiorna la Counting Grid
-					this->logG.at(r, c, z) = newGamma;
+					this->logG(r, c, z) = newGamma;
 				}
 				else{
 					// Aggiorna la Counting Grid
-					this->logG.at(r, c, z) = it->second;
+					this->logG(r, c, z) = itLogGamma->second;
 				}
 			}
 
 			// Calcolo logGammaSum
-			map<float, float>::iterator it;
-			float sumA = sum(fvec(this->Aw.tube(r, r, c, c)));
-			it = this->gammaLookUp->find(sumA);
-			if (it == this->gammaLookUp->end()){
+			itLogGamma = this->gammaLookUp->begin();
+			int keySumA = (int) sum(fvec(this->Aw(span(r, r), span(c, c), span::all)) - BASE_PRIOR );
+			float sumA = sum(fvec(this->Aw(span(r, r), span(c, c), span::all)));
+
+			itLogGamma = this->gammaLookUp->find(keySumA);
+			if (itLogGamma == this->gammaLookUp->end()){
 				// Calcola la nuova gamma
 				float newGamma = lgammaf(sumA);
 				// Aggiungila alla lookup table
-				this->gammaLookUp->insert(std::pair<float, float>(sumA, newGamma));
+				this->gammaLookUp->insert(std::pair<int, float>(keySumA, newGamma));
 				// Aggiorna la Counting Grid
-				this->logGsum.at(r, c) = newGamma;
+				this->logGsum(r, c) = newGamma;
 			}
 			else{
 				// Aggiorna la Counting Grid
-				this->logGsum.at(r, c) = it->second;
+				this->logGsum(r, c) = itLogGamma->second;
 			}
 		}
 	}
@@ -390,4 +344,19 @@ int CountingGrid::saveCg(string path)
 	return 0;
 }
 
+
+fcube CountingGrid::get_a()
+{
+	return this->a;
+}
+
+fcube CountingGrid::get_Aw()
+{
+	return this->Aw;
+}
+
+fcube CountingGrid::get_logG()
+{
+	return this->logG;
+}
 
