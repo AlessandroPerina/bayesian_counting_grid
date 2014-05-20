@@ -26,7 +26,7 @@ Datapoint::Datapoint( mapdata counts )
 }
 
 
-Datapoint::Datapoint(mapdata counts, char* name)
+Datapoint::Datapoint(mapdata counts, string name)
 {
 	this->countsDict = counts;
 	this->pointName = name;
@@ -69,7 +69,7 @@ void Datapoint::setTokenLocations( map<int, arma::sp_fmat> maptoken)
 	}
 }
 
-char* Datapoint::getName()
+string Datapoint::getName()
 {
 	return this->pointName;
 }

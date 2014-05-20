@@ -5,13 +5,13 @@
 
 class DataReader {
 public:
-    DataReader(char* data_filename);
+    DataReader(string data_filename);
     virtual ~DataReader();
     int loadData();
     std::map<int, Datapoint*>* getData();
 
 private:
-    char* data_filename;
+    string data_filename;
     std::map<int, Datapoint*> data;
 };
 
