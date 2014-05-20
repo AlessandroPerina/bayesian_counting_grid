@@ -2,27 +2,31 @@
 
 
 Datapoint::Datapoint( mapdata counts )
-{
+{   
 	this->countsDict = counts;
 	this->pointName = "no_name";
 	this->isAssigned = -1;
 	this->rowMap = -1;
 	this->colMap = -1;
 	this->nUniWords = this->countsDict.size();
-
+        //cout<<counts.size()<<" - "<<this->nUniWords<<endl;
 	// frowvec tmp = frowvec(this->nonZero); Controlla se funziona
 	this->countsArray  = zeros<frowvec>(  Z );
 	this->words = zeros<urowvec>( this->nUniWords );
 
 	int k=0;
-	for ( mapdata::iterator it = this->countsDict.begin(); it != this->countsDict.end(); it ++ )
+        cout<<"starting inner loop"<<endl; 
+        
+	for (mapdata::iterator it = this->countsDict.begin(); it != this->countsDict.end(); it++ )
 	{
 		this->countsArray[it->first] = float( it->second );
 		this->words[k] = it->first;
-		this->tokenLoc.insert(std::pair<int, arma::sp_fmat>(int(it->first), arma::sp_fmat(CG_ROWS, CG_COLS)));
+		this->tokenLoc.insert(std::pair<int, arma::sp_fmat>(it->first, arma::sp_fmat(CG_ROWS, CG_COLS)));
 		k++;
 	}
+        cout<<"now computing sum"<<endl;
 	this->nTokens = int(arma::sum( this->countsArray ));
+        cout<<"Datapoint is initialised"<<endl;
 }
 
 

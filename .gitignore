@@ -220,3 +220,5 @@ bayesian_counting_grid/nbproject/private/
 *.mk
 bayesian_counting_grid/Makefile
 bayesian_counting_grid/.dep.inc
+bayesian_counting_grid/build/
+bayesian_counting_grid/dist/

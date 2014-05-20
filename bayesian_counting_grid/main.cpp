@@ -1,6 +1,7 @@
 #include "GeneralHeader.h"
 #include "CountingGrid.h"
 #include "Datapoint.h"
+#include "DataReader.h"
 
 int main()
 {
@@ -20,8 +21,11 @@ int main()
 	cout << "Gamma of " << gm << " equal to " << gammaLookUp[gm] << endl;
 	system("Pause");
 
-	CountingGrid cgProva = CountingGrid( &gammaLookUp );
+	//CountingGrid cgProva = CountingGrid( &gammaLookUp );
 	cout << "Minchia se funziona..." << endl;
+        
+        DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/science.txt");
+        dr->loadData();
 
 	return 0;
 

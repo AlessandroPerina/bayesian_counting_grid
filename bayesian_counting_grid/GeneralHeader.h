@@ -52,7 +52,7 @@ typedef std::map<int,int> mapdata;
 #define CG_COLS 4
 #define WD_ROWS 2
 #define WD_COLS 2
-#define Z 3
+#define Z 24678
 #define BASE_PRIOR 0.1
 
 /*#ifndef DEFINE_CONST
