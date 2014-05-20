@@ -215,6 +215,7 @@ pip-log.txt
 .mr.developer.cfg
 
 # Netbeans config
-bayesian_counting_grid/
+bayesian_counting_grid/nbproject/
+bayesian_counting_grid/nbproject/private/
 *.mk
 Makefile
