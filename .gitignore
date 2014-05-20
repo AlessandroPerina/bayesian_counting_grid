@@ -216,3 +216,5 @@ pip-log.txt
 
 # Netbeans config
 ./nbproject/*
+*.mk
+Makefile
