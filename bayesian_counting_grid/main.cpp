@@ -4,7 +4,7 @@
 
 int main()
 {
-	const int NO_GAMMAS = 10;
+	const int NO_GAMMAS = 5000;
 	const float base_prior = BASE_PRIOR*WD_ROWS*WD_COLS;
 	map<int, float> gammaLookUp;
 	
@@ -27,6 +27,8 @@ int main()
 	cgProva.get_a().print("a: ");
 	cgProva.get_Aw().print("Aw: ");
 	cgProva.get_logG().print("logG: ");
+
+
 	cout << "Minchia se funziona..." << endl;
 
 	return 0;

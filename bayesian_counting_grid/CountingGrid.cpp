@@ -46,11 +46,13 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 			for (int z = 0; z < Z; z++)
 			{
 				map<int, float>::iterator it;
-				int key = int(this->Aw(r, c, z) - WD_ROWS*WD_COLS*BASE_PRIOR);
+				float tmpA = this->Aw(r, c, z);
+				float costa = WD_ROWS*WD_COLS*BASE_PRIOR;
+				int key = (int)round(this->Aw(r, c, z) - WD_ROWS*WD_COLS*BASE_PRIOR);
 				it = this->gammaLookUp->find( key );
 				if (it == this->gammaLookUp->end()){
 					// Calcola la nuova gamma
-					float newGamma = lgammaf(key);
+					float newGamma = lgammaf(this->Aw(r, c, z));
 					// Aggiungila alla lookup table
 					this->gammaLookUp->insert(std::pair<int, float>(key, newGamma));
 					// Aggiorna la Counting Grid
@@ -68,7 +70,7 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 			tmp1 = this->Aw(span(r, r), span(c, c), span::all) - WD_ROWS*WD_COLS*BASE_PRIOR;
 			float sumTmp1 = sum(fvec(this->Aw(span(r, r), span(c, c), span::all)));
 
-			int keySum = (int)sum(fvec(this->Aw(span(r, r), span(c, c), span::all)) - WD_ROWS*WD_COLS*BASE_PRIOR);
+			int keySum = (int)round(sum(fvec(this->Aw(span(r, r), span(c, c), span::all)) - WD_ROWS*WD_COLS*BASE_PRIOR));
 			float trueValue = sum(fvec(this->Aw(span(r, r), span(c, c), span::all)));
 
 			it = this->gammaLookUp->find(keySum);
@@ -169,7 +171,7 @@ fmat CountingGrid::locationPosterior(Datapoint* dp)
 		for (int c = 0; c < CG_COLS; c++)
 		{
 
-			accumT2Key = (int) sum(fvec(Aw(span(r, r), span(c, c), span::all) - BASE_PRIOR ));
+			accumT2Key = (int)round(sum(fvec(Aw(span(r, r), span(c, c), span::all) - WD_ROWS*WD_COLS*BASE_PRIOR)));
 			accumT2 = sum(fvec(Aw(span(r, r), span(c, c), span::all) ));
 			for (urowvec::iterator featureIt = dp->getWords().begin(); featureIt != dp->getWords().end(); featureIt++)
 			{		
@@ -177,7 +179,7 @@ fmat CountingGrid::locationPosterior(Datapoint* dp)
 				accumT2 += float(dp->getSingleCountsDict(*featureIt));
 				// sn qui
 				map<int, float>::iterator itLogGamma;
-				int keyTmpCount = (int) Aw(r, c, *featureIt) - BASE_PRIOR + dp->getSingleCountsDict(*featureIt);
+				int keyTmpCount = (int)round(Aw(r, c, *featureIt) - WD_ROWS*WD_COLS*BASE_PRIOR + dp->getSingleCountsDict(*featureIt));
 				float trueCount = Aw(r, c, *featureIt) + float(dp->getSingleCountsDict(*featureIt));
 				itLogGamma = this->gammaLookUp->find(keyTmpCount);
 				if (itLogGamma == this->gammaLookUp->end()){
@@ -195,7 +197,7 @@ fmat CountingGrid::locationPosterior(Datapoint* dp)
 			itLogGamma = this->gammaLookUp->find(accumT2Key);
 			if (itLogGamma == this->gammaLookUp->end()){
 				float newGamma = lgammaf(accumT2);
-				this->gammaLookUp->insert(std::pair<float, float>(accumT2Key, newGamma));
+				this->gammaLookUp->insert(std::pair<int, float>(accumT2Key, newGamma));
 				T2(r, c) = newGamma;
 			}
 			else{
