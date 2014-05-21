@@ -32,7 +32,6 @@ int DataReader::loadData(){
         while(getline(linestream, s, ' '))
         {
             sscanf((char*)s.c_str(), "%10d:%10d", &word, &count);
-    
             tmpMap.insert(std::pair<int,int>(word, count));
         }
 

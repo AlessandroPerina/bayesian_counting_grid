@@ -122,7 +122,9 @@ int CountingGrid::sumAllWindows()
 
 int CountingGrid::addDatapoint(Datapoint* dp )
 {
-	for (map<int, arma::sp_fmat>::iterator it = dp->getTokenLoc().begin(); it != dp->getTokenLoc().end(); it++)
+	map<int, arma::sp_fmat> tmpMap = dp->getTokenLoc();
+
+	for (map<int, arma::sp_fmat>::iterator it = tmpMap.begin(); it != tmpMap.end(); it++)
 	{
 		this->a.slice(it->first) += it->second;
 	}
@@ -136,7 +138,9 @@ int CountingGrid::addDatapoint(Datapoint* dp )
 
 int CountingGrid::removeDatapoint( Datapoint* dp ) 
 {
-	for (map<int, arma::sp_fmat>::iterator it = dp->getTokenLoc().begin(); it != dp->getTokenLoc().end(); it++)
+	map<int, arma::sp_fmat> tmpMap = dp->getTokenLoc();
+
+	for (map<int, arma::sp_fmat>::iterator it = tmpMap.begin(); it != tmpMap.end(); it++)
 	{
 		this->a.slice(it->first) -= it->second;
 	}
@@ -152,16 +156,22 @@ fcolvec CountingGrid::locationPosterior(Datapoint* dp)
 {
 	fmat locationLikelihood = fmat(CG_ROWS, CG_COLS, fill::zeros);
 
-	fmat T1 = fmat(CG_ROWS, CG_COLS, fill::zeros);
-	T1 = this->logGsum;
-	fmat T2 = fmat(CG_ROWS, CG_COLS, fill::zeros);
-
-	fmat T4 = arma::accu(this->logGsum) - this->logGsum;
-
 	fcube tmp = reshape(this->logG, CG_ROWS*CG_COLS, Z, 1);
-	fmat T3 = reshape(sum( tmp.slice(0),1), CG_ROWS, CG_COLS);
+	fmat T3 = reshape(sum(tmp.slice(0), 1), CG_ROWS, CG_COLS);
 	T3 = arma::accu(T3) - T3;
 
+	fmat T1 = fmat(CG_ROWS, CG_COLS, fill::zeros);
+	T1 = reshape(sum(tmp.slice(0), 1), CG_ROWS, CG_COLS);
+
+	fmat T2 = fmat(CG_ROWS, CG_COLS, fill::zeros);
+
+	fmat T4 = fmat(CG_ROWS, CG_COLS, fill::zeros);
+	T4 = arma::accu(this->logGsum) - this->logGsum;
+
+
+
+
+	
 	//	fmat(CG_COLS, CG_ROWS, fill::zeros);
 	int accumT2Key = 0;
 	float accumT2 = 0;
@@ -171,24 +181,27 @@ fcolvec CountingGrid::locationPosterior(Datapoint* dp)
 		for (int c = 0; c < CG_COLS; c++)
 		{
 
-			accumT2Key = (int)round(sum(fvec(Aw(span(r, r), span(c, c), span::all) - WD_ROWS*WD_COLS*BASE_PRIOR)));
+			mapdata tmpMap = dp->getCountsDict();
+			accumT2Key = (int) round(sum(fvec(Aw(span(r, r), span(c, c), span::all) - WD_ROWS*WD_COLS*BASE_PRIOR)));
 			accumT2 = sum(fvec(Aw(span(r, r), span(c, c), span::all) ));
-			for (urowvec::iterator featureIt = dp->getWords().begin(); featureIt != dp->getWords().end(); featureIt++)
-			{		
-				accumT2Key += dp->getSingleCountsDict(*featureIt);
-				accumT2 += float(dp->getSingleCountsDict(*featureIt));
+			for (mapdata::iterator featureIt = tmpMap.begin(); featureIt != tmpMap.end(); featureIt++)
+			{
+
+				accumT2Key += featureIt->first;
+				accumT2 += float(featureIt->first);
 				// sn qui
 				map<int, float>::iterator itLogGamma;
-				int keyTmpCount = (int)round(Aw(r, c, *featureIt) - WD_ROWS*WD_COLS*BASE_PRIOR + dp->getSingleCountsDict(*featureIt));
-				float trueCount = Aw(r, c, *featureIt) + float(dp->getSingleCountsDict(*featureIt));
+
+				int keyTmpCount = (int)round(Aw(r, c, featureIt->first) - WD_ROWS*WD_COLS*BASE_PRIOR + featureIt->second );
+				float trueCount = Aw(r, c, featureIt->first) + float(featureIt->second);
 				itLogGamma = this->gammaLookUp->find(keyTmpCount);
 				if (itLogGamma == this->gammaLookUp->end()){
 					float newGamma = lgammaf(trueCount);
 					this->gammaLookUp->insert(std::pair<float, float>(keyTmpCount, newGamma));
-					T1(r, c) = T1(r, c) - this->logG(r, c, *featureIt) + newGamma;
+					T1(r, c) = T1(r, c) - this->logG(r, c, featureIt->first) + newGamma;
 				}
 				else{
-					T1(r, c) = T1(r, c) - this->logG(r, c, *featureIt) + itLogGamma->second;
+					T1(r, c) = T1(r, c) - this->logG(r, c, featureIt->first) + itLogGamma->second;
 				}
 
 			}
@@ -229,7 +242,7 @@ int CountingGrid::computeLogGammaCG(map<int, arma::sp_fmat> tokenLoc)
 	for (map<int, arma::sp_fmat>::iterator featureIt = tokenLoc.begin(); featureIt != tokenLoc.end(); featureIt++)
 	{
 		// Trick per convertire da matrice sparsa. Faccio questo perch� la conversione non funziona.
-		fmat tmp;
+		fmat tmp = fmat(CG_ROWS, CG_COLS);
 		tmp.fill(0);
 		tmp += featureIt->second; // tmp � la matrice della slice z
 
@@ -245,7 +258,8 @@ int CountingGrid::computeLogGammaCG(map<int, arma::sp_fmat> tokenLoc)
 			int tmpCol = (int)floor(*itv / CG_ROWS) % CG_COLS;
 
 			map<int, float>::iterator itLogGamma;
-			int key = (int) this->Aw(tmpRow, tmpCol, featureIt->first) - BASE_PRIOR;
+
+			int key = (int) round( this->Aw(tmpRow, tmpCol, featureIt->first) - BASE_PRIOR*WD_ROWS*WD_COLS);
 			itLogGamma = this->gammaLookUp->find(key);
 			if (itLogGamma == this->gammaLookUp->end()){
 				float newGamma = lgammaf(this->Aw(tmpRow, tmpCol, featureIt->first));
@@ -258,7 +272,7 @@ int CountingGrid::computeLogGammaCG(map<int, arma::sp_fmat> tokenLoc)
 
 			// Vado a modificare la variabile logGsum.
 			itLogGamma = this->gammaLookUp->begin(); // Risposto all'inizio l'iteratore
-			int keySumA = (int)sum(fvec(this->Aw(span(tmpRow, tmpRow), span(tmpCol, tmpCol), span::all)) - BASE_PRIOR);
+			int keySumA = (int)round(sum(fvec(this->Aw(span(tmpRow, tmpRow), span(tmpCol, tmpCol), span::all)) - BASE_PRIOR*CG_COLS*CG_ROWS));
 			int sumA = sum(fvec(this->Aw(span(tmpRow, tmpRow), span(tmpCol, tmpCol), span::all)));
 
 			itLogGamma = this->gammaLookUp->find(keySumA);
@@ -275,56 +289,6 @@ int CountingGrid::computeLogGammaCG(map<int, arma::sp_fmat> tokenLoc)
 				this->logGsum(tmpRow, tmpCol) = itLogGamma->second;
 			}
 
-		}
-	}
-	return 0;
-}
-
-int CountingGrid::computeLogGammaCG()
-{
-	for (int r = 0; r < CG_ROWS; r++)
-	{
-		map<int, float>::iterator itLogGamma;
-		for (int c = 0; c < CG_COLS; c++)
-		{
-			for (int z = 0; z < Z; z++)
-			{
-				itLogGamma = this->gammaLookUp->begin();
-				int key = (int) this->Aw(r, c, z) - BASE_PRIOR;
-				itLogGamma = this->gammaLookUp->find(key);
-				if (itLogGamma == this->gammaLookUp->end()){
-
-					// Calcola la nuova gamma
-					float newGamma = lgammaf(this->Aw(r, c, z));
-					// Aggiungila alla lookup table
-					this->gammaLookUp->insert(std::pair<float, float>(key, newGamma));
-					// Aggiorna la Counting Grid
-					this->logG(r, c, z) = newGamma;
-				}
-				else{
-					// Aggiorna la Counting Grid
-					this->logG(r, c, z) = itLogGamma->second;
-				}
-			}
-
-			// Calcolo logGammaSum
-			itLogGamma = this->gammaLookUp->begin();
-			int keySumA = (int) sum(fvec(this->Aw(span(r, r), span(c, c), span::all)) - BASE_PRIOR );
-			float sumA = sum(fvec(this->Aw(span(r, r), span(c, c), span::all)));
-
-			itLogGamma = this->gammaLookUp->find(keySumA);
-			if (itLogGamma == this->gammaLookUp->end()){
-				// Calcola la nuova gamma
-				float newGamma = lgammaf(sumA);
-				// Aggiungila alla lookup table
-				this->gammaLookUp->insert(std::pair<int, float>(keySumA, newGamma));
-				// Aggiorna la Counting Grid
-				this->logGsum(r, c) = newGamma;
-			}
-			else{
-				// Aggiorna la Counting Grid
-				this->logGsum(r, c) = itLogGamma->second;
-			}
 		}
 	}
 	return 0;

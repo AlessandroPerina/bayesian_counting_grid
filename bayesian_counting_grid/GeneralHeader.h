@@ -48,12 +48,15 @@ using namespace arma;
 typedef std::map<int,int> mapdata;
 
 #define DIM 2
-#define CG_ROWS 4
-#define CG_COLS 4
-#define WD_ROWS 2
-#define WD_COLS 2
+#define CG_ROWS 32
+#define CG_COLS 32
+#define WD_ROWS 5
+#define WD_COLS 5
+// #define Z 20
 #define Z 24678
 #define BASE_PRIOR 0.1
+#define ASSIGN_TOKEN true
+
 
 /*#ifndef DEFINE_CONST
 map<float, float> gammaLookUp;

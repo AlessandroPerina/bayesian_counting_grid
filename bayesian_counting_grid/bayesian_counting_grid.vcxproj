@@ -82,11 +82,13 @@
   <ItemGroup>
     <ClInclude Include="CountingGrid.h" />
     <ClInclude Include="Datapoint.h" />
+    <ClInclude Include="DataReader.h" />
     <ClInclude Include="GeneralHeader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CountingGrid.cpp" />
     <ClCompile Include="Datapoint.cpp" />
+    <ClCompile Include="DataReader.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

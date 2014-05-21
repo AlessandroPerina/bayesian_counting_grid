@@ -12,19 +12,18 @@ int main()
         boost::mt19937 rng;
         rng.seed(123);
 
-	std::cout << "Ciao!" << endl;
         std::map<int, Datapoint*>* localData;
         Datapoint* d;
 
-//	for (int g = 0; g < NO_GAMMAS; g++)
-//	{
-//		int key = g;
-//		float newGamma = lgammaf(g + base_prior);
-//		gammaLookUp.insert(std::pair<int, float>(key, newGamma));
-//	}
-//	std::cout << "Gamma lookup initialized" << endl;
-//	float gm = 10 + base_prior;
-//	cout << "Gamma of " << gm << " equal to " << gammaLookUp[gm] << endl;
+	for (int g = 0; g < NO_GAMMAS; g++)
+	{
+		int key = g;
+		float newGamma = lgammaf(g + base_prior);
+		gammaLookUp.insert(std::pair<int, float>(key, newGamma));
+	}
+	std::cout << "Gamma lookup initialized" << endl;
+	float gm = 10 + base_prior;
+
 //	system("Pause");
 //
 //	CountingGrid cgProva = CountingGrid( &gammaLookUp );
@@ -32,15 +31,13 @@ int main()
 //	cgProva.get_Aw().print("Aw: ");
 //	cgProva.get_logG().print("logG: ");
 
-	cout << "Minchia se funziona..." << endl;
+ //	cout << "Minchia se funziona..." << endl;
         
-        DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/science_sub.txt");
+        DataReader* dr = new DataReader("C:\\Users\\APerina\\Documents\\DataCG\\science.txt");
         dr->loadData();
         
         localData = dr->getData();
         d = localData->at(3);
-        cout<<d->getWords()[0]<<" "<<d->getWords()[1]<<" "<<d->getWords()[2]<<endl;
-        cout<<d->getCountsArray()[d->getWords()[0]]<<" "<<d->getCountsArray()[d->getWords()[1]]<<" "<<d->getCountsArray()[d->getWords()[2]]<<endl;
 
         //Gibbs Sampling
         
@@ -62,6 +59,7 @@ int main()
         
         for (int iterId = 0; iterId < gibbsIter; iterId++)
         {
+
             //Shuffle keys vector to iterate over points in random order
             std::random_shuffle(keysVec.begin(), keysVec.end());
             
@@ -83,15 +81,16 @@ int main()
                 localData->at(currKey)->sampleLocation(locPost, &rng);
 
                 //Map Datapoint to grid (distribute token)
-                
+				localData->at(currKey)->sampleTokenLocation(&cg, &rng);
+
                 //Add Datapoint to Counting Grid and update counts
                 cg.addDatapoint(localData->at(currKey));
             }
-            
+			cout << "Iterazione " << iterId << " Completata" << endl;
         }
         
         
-        
+	cg.get_a().save("CountingGrid.cg", raw_ascii);
 	return 0;
 
 }

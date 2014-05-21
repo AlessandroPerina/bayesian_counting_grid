@@ -1,5 +1,5 @@
 #include "Datapoint.h"
-
+#include "CountingGrid.h"
 
 Datapoint::Datapoint( mapdata counts )
 {   
@@ -127,12 +127,62 @@ int Datapoint::sampleLocation(fcolvec p, boost::mt19937* rng){
     std::vector<double> z = conv_to< std::vector<double> >::from(p);
     boost::random::discrete_distribution<> dist(z.begin(),z.end());    
     asgnIdx = dist(*rng);
-    cout<<asgnIdx<<endl;
+    // cout<<asgnIdx<<endl;
 
     //Convert linear index in valid location
-    this->setLocation((int)asgnIdx / CG_ROWS, (int)asgnIdx % CG_ROWS);
+    this->setLocation((int) asgnIdx % CG_ROWS, (int) asgnIdx / CG_ROWS);
     //this->colMap = (int)asgnIdx / CG_ROWS;
     //this->rowMap = (int)asgnIdx % CG_ROWS;
     
     return 0;
+}
+
+int Datapoint::sampleTokenLocation(CountingGrid* cg, boost::mt19937* rng)
+{
+	if (ASSIGN_TOKEN)
+	{
+		fcube suba = cg->get_a().tube(span(this->rowMap, this->rowMap + WD_ROWS - 1), span(this->colMap, this->colMap + WD_COLS - 1));
+		for (mapdata::iterator itFeature = this->countsDict.begin(); itFeature != this->countsDict.end(); itFeature++)
+		{
+			fcolvec aTmp = reshape(suba.slice(itFeature->first), WD_ROWS*WD_COLS, 1);
+			aTmp = aTmp / sum(aTmp);
+
+			int asgnIdx;
+
+			std::vector<double> z = conv_to< std::vector<double> >::from(aTmp);
+			boost::random::discrete_distribution<> dist(z.begin(), z.end());
+			this->tokenLoc[itFeature->first].zeros(CG_ROWS, CG_COLS);
+			for (int i = 0; i < itFeature->second; i++)
+			{
+				asgnIdx = dist(*rng);
+				int rowTok = (int)asgnIdx / WD_ROWS;
+				int colTok = (int)asgnIdx % WD_COLS;
+
+				this->tokenLoc[itFeature->first](rowTok+this->rowMap, colTok+this->colMap) += 1;
+			}
+		}
+	}
+	else
+	{
+		fcube suba = cg->get_a().tube(span(this->rowMap, this->rowMap + WD_ROWS - 1), span(this->colMap, this->colMap + WD_COLS - 1));
+		for (mapdata::iterator itFeature = this->countsDict.begin(); itFeature != this->countsDict.end(); itFeature++)
+		{
+			fcolvec aTmp = reshape(suba.slice(itFeature->first), WD_ROWS*WD_COLS, 1);
+			aTmp = aTmp / sum(aTmp);
+
+			int asgnIdx;
+			sp_fmat tmp;
+			std::vector<double> z = conv_to< std::vector<double> >::from(aTmp);
+			boost::random::discrete_distribution<> dist(z.begin(), z.end());
+			this->tokenLoc[itFeature->first].clear();
+
+			asgnIdx = dist(*rng);
+			int rowTok = (int)asgnIdx / WD_ROWS;
+			int colTok = (int)asgnIdx % WD_COLS;
+			//this->rowMap = (int)asgnIdx % CG_ROWS;
+			this->tokenLoc[itFeature->first](rowTok + this->rowMap, colTok + this->colMap) = itFeature->second;
+
+		}
+	}
+	return 0;
 }
