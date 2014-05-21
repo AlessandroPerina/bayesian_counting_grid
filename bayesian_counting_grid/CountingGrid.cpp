@@ -148,7 +148,7 @@ int CountingGrid::removeDatapoint( Datapoint* dp )
 }
 
 
-fmat CountingGrid::locationPosterior(Datapoint* dp)
+fcolvec CountingGrid::locationPosterior(Datapoint* dp)
 {
 	fmat locationLikelihood = fmat(CG_ROWS, CG_COLS, fill::zeros);
 
@@ -211,8 +211,9 @@ fmat CountingGrid::locationPosterior(Datapoint* dp)
 	likelihoodLocation.reshape(CG_ROWS*CG_COLS, 1);
 
 	fcolvec posteriorTmp = arma::conv_to<fcolvec>::from(likelihoodLocation);
-	fmat posterior = reshape(exp(posteriorTmp - posteriorTmp.max() - log(sum(exp(posteriorTmp - posteriorTmp.max())))), CG_ROWS, CG_COLS);
-	return posterior;
+	//fmat posterior = reshape(exp(posteriorTmp - posteriorTmp.max() - log(sum(exp(posteriorTmp - posteriorTmp.max())))), CG_ROWS, CG_COLS);
+        //return posterior;
+        return exp(posteriorTmp - posteriorTmp.max() - log(sum(exp(posteriorTmp - posteriorTmp.max()))));
 }
 
 double CountingGrid::computeEnergy(Datapoint* dp)
@@ -227,10 +228,10 @@ int CountingGrid::computeLogGammaCG(map<int, arma::sp_fmat> tokenLoc)
 	// togli e aggiorna log G
 	for (map<int, arma::sp_fmat>::iterator featureIt = tokenLoc.begin(); featureIt != tokenLoc.end(); featureIt++)
 	{
-		// Trick per convertire da matrice sparsa. Faccio questo perchè la conversione non funziona.
+		// Trick per convertire da matrice sparsa. Faccio questo perchï¿½ la conversione non funziona.
 		fmat tmp;
 		tmp.fill(0);
-		tmp += featureIt->second; // tmp è la matrice della slice z
+		tmp += featureIt->second; // tmp ï¿½ la matrice della slice z
 
 		uvec nonZeroIds = arma::find(tmp, 0);
 		for (uvec::iterator itv = nonZeroIds.begin(); itv != nonZeroIds.end(); itv++)

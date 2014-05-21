@@ -21,6 +21,8 @@ public:
 	int getSingleCountsDict(int);
 	frowvec getCountsArray();
 	map<int, sp_fmat> getTokenLoc();
+        int sampleLocation(fcolvec, boost::mt19937*);
+        int checkAsgn();
         
 private:
 	int isAssigned;

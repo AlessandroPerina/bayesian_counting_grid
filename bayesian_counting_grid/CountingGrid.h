@@ -18,7 +18,8 @@ public:
 	int computeLogGammaCG();
 	int computeLogGammaCG( map<int, arma::sp_fmat> );
 
-	fmat locationPosterior( Datapoint* );
+	//fmat locationPosterior( Datapoint* );
+        fcolvec locationPosterior( Datapoint* );
 	double computeEnergy( Datapoint* );
 
 	int printCg(int);

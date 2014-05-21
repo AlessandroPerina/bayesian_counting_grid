@@ -59,6 +59,7 @@ void Datapoint::setLocation( int row, int col )
 {
 	this->rowMap = row;
 	this->colMap = col;
+        this->isAssigned = 1;
 }
 
 
@@ -115,3 +116,23 @@ int Datapoint::getSingleCountsDict(int id)
 	return this->countsDict[id];
 }
 
+int Datapoint::checkAsgn(){
+    return this->isAssigned;
+}
+
+int Datapoint::sampleLocation(fcolvec p, boost::mt19937* rng){
+    
+    int asgnIdx;
+    
+    std::vector<double> z = conv_to< std::vector<double> >::from(p);
+    boost::random::discrete_distribution<> dist(z.begin(),z.end());    
+    asgnIdx = dist(*rng);
+    cout<<asgnIdx<<endl;
+
+    //Convert linear index in valid location
+    this->setLocation((int)asgnIdx / CG_ROWS, (int)asgnIdx % CG_ROWS);
+    //this->colMap = (int)asgnIdx / CG_ROWS;
+    //this->rowMap = (int)asgnIdx % CG_ROWS;
+    
+    return 0;
+}
