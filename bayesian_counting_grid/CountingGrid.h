@@ -15,6 +15,8 @@ public:
 	int addDatapoint( Datapoint* );
 	int removeDatapoint( Datapoint* );
 	int sumAllWindows();
+        int sumAllWindowsLoop();
+        int updateAw(Datapoint*);
 	int computeLogGammaCG();
 	int computeLogGammaCG( map<int, arma::sp_fmat> );
 

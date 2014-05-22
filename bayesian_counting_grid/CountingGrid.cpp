@@ -21,7 +21,8 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 
 	// pad a
 	fcube tmp = fcube(CG_ROWS+WD_ROWS-1, CG_COLS+WD_COLS-1, Z);
-	tmp.fill(1);
+	//tmp.fill(1);
+        tmp.fill(BASE_PRIOR);
 	tmp(span(0, CG_ROWS - 1), span(0, CG_COLS - 1), span::all ) = this->a(span(0, CG_ROWS - 1), span(0, CG_COLS - 1), span::all);
 	tmp(span(0, CG_ROWS - 1), span(CG_COLS, CG_COLS + WD_COLS - 2), span::all) = this->a(span(0, CG_ROWS - 1), span(0, WD_COLS - 2), span::all);
 	tmp(span(CG_ROWS, CG_ROWS + WD_ROWS - 2), span(0, CG_COLS - 1), span::all) = this->a(span(0, WD_ROWS - 2), span(0, CG_COLS - 1), span::all);
@@ -119,19 +120,71 @@ int CountingGrid::sumAllWindows()
 	return 0;
 }
 
+int CountingGrid::sumAllWindowsLoop()
+{
+	//this->Aw.fill(0);
+        //loop over nonzero 
+        for (int z = 0;  z < Z; z++)
+        {
+            for (int r = 0; r < CG_ROWS; r++)
+            {
+                for (int c = 0; c < CG_COLS; c++)
+                {
+                    for (int wRow = 0; wRow < WD_ROWS; wRow++)
+                        for (int wCol = 0; wCol < WD_COLS; wCol++)
+                        {
+                            int rIdx = (int)(r + wRow)%WD_ROWS;
+                            int cIdx = (int)(c + wCol)%WD_COLS;
+                            this->Aw(r, c, z) += this->a(rIdx,cIdx,z);
+                        }
+                }
+            }
+        }
+	return 0;
+}
+
+int CountingGrid::updateAw(Datapoint* dp)
+{
+	// changes only slices where the Datapoint has data
+    urowvec::iterator wordsIt;
+    
+        for( wordsIt = dp->getWords().begin(); wordsIt = dp->getWords().end(); wordsIt++)
+        {
+            this->Aw.slice(*wordsIt).fill(0);
+            
+            for (int r = 0; r < CG_ROWS; r++)
+            {
+                for (int c = 0; c < CG_COLS; c++)
+                {
+                    for (int wRow = 0; wRow < WD_ROWS; wRow++)
+                        for (int wCol = 0; wCol < WD_COLS; wCol++)
+                        {
+                            int rIdx = (int)(r + wRow)%WD_ROWS;
+                            int cIdx = (int)(c + wCol)%WD_COLS;
+                            this->Aw(r, c, *wordsIt) += this->a(rIdx,cIdx, *wordsIt);
+                        }
+                }
+            }
+        }
+	return 0;
+}
 
 int CountingGrid::addDatapoint(Datapoint* dp )
 {
 	map<int, arma::sp_fmat> tmpMap = dp->getTokenLoc();
 
+        cout<<"update loop"<<endl;
 	for (map<int, arma::sp_fmat>::iterator it = tmpMap.begin(); it != tmpMap.end(); it++)
 	{
 		this->a.slice(it->first) += it->second;
 	}
 	// Aggiorno la variabile somma
-	this->sumAllWindows();
+        cout<<"updating sum"<<endl;
+	//this->sumAllWindowsLoop();
+        this->updateAw(dp);
+        cout<<"computing logGamma"<<endl;
 	this->computeLogGammaCG(dp->getTokenLoc());
-	
+	cout<<"done"<<endl;
 	return 0;
 
 }
@@ -145,7 +198,8 @@ int CountingGrid::removeDatapoint( Datapoint* dp )
 		this->a.slice(it->first) -= it->second;
 	}
 	// Aggiorno la variabile somma
-	this->sumAllWindows();
+	//this->sumAllWindowsLoop();
+        this->updateAw(dp);
 	this->computeLogGammaCG(dp->getTokenLoc());
 
 	return 0;
@@ -154,14 +208,13 @@ int CountingGrid::removeDatapoint( Datapoint* dp )
 
 fcolvec CountingGrid::locationPosterior(Datapoint* dp)
 {
-	fmat locationLikelihood = fmat(CG_ROWS, CG_COLS, fill::zeros);
 
 	fcube tmp = reshape(this->logG, CG_ROWS*CG_COLS, Z, 1);
 	fmat T3 = reshape(sum(tmp.slice(0), 1), CG_ROWS, CG_COLS);
 	T3 = arma::accu(T3) - T3;
 
-	fmat T1 = fmat(CG_ROWS, CG_COLS, fill::zeros);
-	T1 = reshape(sum(tmp.slice(0), 1), CG_ROWS, CG_COLS);
+	//fmat T1 = fmat(CG_ROWS, CG_COLS, fill::zeros);
+	fmat T1 = reshape(sum(tmp.slice(0), 1), CG_ROWS, CG_COLS);
 
 	fmat T2 = fmat(CG_ROWS, CG_COLS, fill::zeros);
 
@@ -262,6 +315,7 @@ int CountingGrid::computeLogGammaCG(map<int, arma::sp_fmat> tokenLoc)
 			int key = (int) round( this->Aw(tmpRow, tmpCol, featureIt->first) - BASE_PRIOR*WD_ROWS*WD_COLS);
 			itLogGamma = this->gammaLookUp->find(key);
 			if (itLogGamma == this->gammaLookUp->end()){
+                            cout<<"cannot find "<<key<<endl;
 				float newGamma = lgammaf(this->Aw(tmpRow, tmpCol, featureIt->first));
 				this->gammaLookUp->insert(std::pair<int, float>(key, newGamma));
 				this->logG(tmpRow,tmpCol,featureIt->first) = newGamma;
@@ -305,7 +359,7 @@ int CountingGrid::printCg(int sl)
 
 int CountingGrid::saveCg(string path)
 {
-	this->a.save(path + "\pi.mat", arma_ascii);
+	this->a.save(path + "\\pi.mat", arma_ascii);
 	return 0;
 }
 
