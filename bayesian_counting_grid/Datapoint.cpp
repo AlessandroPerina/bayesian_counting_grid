@@ -24,6 +24,7 @@ Datapoint::Datapoint( mapdata counts )
 	}
         
 	this->nTokens = int(arma::sum( this->countsArray ));
+        
 }
 
 
@@ -139,15 +140,20 @@ int Datapoint::sampleLocation(fcolvec p, boost::mt19937* rng){
 
 int Datapoint::sampleTokenLocation(CountingGrid* cg, boost::mt19937* rng)
 {
+        int rowTok, colTok, rowFinal, colFinal;
+        int asgnIdx;
+        fcolvec aTmp;
+        sp_fmat tmp;
+        
 	if (ASSIGN_TOKEN)
 	{
 		fcube suba = cg->get_a().tube(span(this->rowMap, this->rowMap + WD_ROWS - 1), span(this->colMap, this->colMap + WD_COLS - 1));
 		for (mapdata::iterator itFeature = this->countsDict.begin(); itFeature != this->countsDict.end(); itFeature++)
 		{
-			fcolvec aTmp = reshape(suba.slice(itFeature->first), WD_ROWS*WD_COLS, 1);
+			aTmp = reshape(suba.slice(itFeature->first), WD_ROWS*WD_COLS, 1);
 			aTmp = aTmp / sum(aTmp);
-
-			int asgnIdx;
+                        //aTmp.t().print("aTmp: ");
+                        //cout<<"Sum: "<<arma::sum(aTmp)<<endl;
 
 			std::vector<double> z = conv_to< std::vector<double> >::from(aTmp);
 			boost::random::discrete_distribution<> dist(z.begin(), z.end());
@@ -155,10 +161,19 @@ int Datapoint::sampleTokenLocation(CountingGrid* cg, boost::mt19937* rng)
 			for (int i = 0; i < itFeature->second; i++)
 			{
 				asgnIdx = dist(*rng);
-				int rowTok = (int)asgnIdx / WD_ROWS;
-				int colTok = (int)asgnIdx % WD_COLS;
-
-				this->tokenLoc[itFeature->first](rowTok+this->rowMap, colTok+this->colMap) += 1;
+				//cout<<"asgnIdx: "<<asgnIdx<<endl;
+                                rowTok = (int)asgnIdx / WD_ROWS;
+				colTok = (int)asgnIdx % WD_ROWS;
+                                
+                                rowFinal = (int)(rowTok+this->rowMap) / CG_ROWS;
+                                colFinal = (int)(colTok+this->colMap) % CG_ROWS;
+                                
+                                //cout<<rowTok<<" "<<colTok<<endl;
+                                //cout<<itFeature->first<<endl;
+                                //this->tokenLoc[itFeature->first].print();
+                                
+                                //cout<<rowTok+this->rowMap<<" "<<colTok+this->colMap<<endl;
+				this->tokenLoc[itFeature->first](rowFinal, colFinal) += 1;
 			}
 		}
 	}
@@ -167,20 +182,23 @@ int Datapoint::sampleTokenLocation(CountingGrid* cg, boost::mt19937* rng)
 		fcube suba = cg->get_a().tube(span(this->rowMap, this->rowMap + WD_ROWS - 1), span(this->colMap, this->colMap + WD_COLS - 1));
 		for (mapdata::iterator itFeature = this->countsDict.begin(); itFeature != this->countsDict.end(); itFeature++)
 		{
-			fcolvec aTmp = reshape(suba.slice(itFeature->first), WD_ROWS*WD_COLS, 1);
+			aTmp = reshape(suba.slice(itFeature->first), WD_ROWS*WD_COLS, 1);
 			aTmp = aTmp / sum(aTmp);
 
-			int asgnIdx;
-			sp_fmat tmp;
+			
 			std::vector<double> z = conv_to< std::vector<double> >::from(aTmp);
 			boost::random::discrete_distribution<> dist(z.begin(), z.end());
 			this->tokenLoc[itFeature->first].clear();
 
 			asgnIdx = dist(*rng);
-			int rowTok = (int)asgnIdx / WD_ROWS;
-			int colTok = (int)asgnIdx % WD_COLS;
+			rowTok = (int)asgnIdx / WD_ROWS;
+			colTok = (int)asgnIdx % WD_COLS;
+                        
+                        rowFinal = (int)(rowTok+this->rowMap) / CG_ROWS;
+                        colFinal = (int)(colTok+this->colMap) % CG_ROWS;
+                        
 			//this->rowMap = (int)asgnIdx % CG_ROWS;
-			this->tokenLoc[itFeature->first](rowTok + this->rowMap, colTok + this->colMap) = itFeature->second;
+			this->tokenLoc[itFeature->first](rowFinal, colFinal) = itFeature->second;
 
 		}
 	}

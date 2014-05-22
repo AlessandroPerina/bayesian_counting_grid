@@ -79,6 +79,7 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 					this->gammaLookUp->insert(std::pair<int, float>(key, newGamma));
 					// Aggiorna la Counting Grid
 					this->logG(r, c, z) = newGamma;
+                                        cout<<newGamma<<" inserted"<<endl;
 				}
 				else{
 					// Aggiorna la Counting Grid
@@ -143,6 +144,7 @@ int CountingGrid::sumAllWindows()
 
 int CountingGrid::sumAllWindowsLoop()
 {
+    int rIdx, cIdx;
 	//this->Aw.fill(0);
         //loop over nonzero 
         for (int z = 0;  z < Z; z++)
@@ -151,16 +153,16 @@ int CountingGrid::sumAllWindowsLoop()
             {
                 for (int c = 0; c < CG_COLS; c++)
                 {
-					for (int wRow = 0; wRow < WD_ROWS; wRow++)
-					{
+                    for (int wRow = 0; wRow < WD_ROWS; wRow++)
+                    {
 
                         for (int wCol = 0; wCol < WD_COLS; wCol++)
                         {
-                            int rIdx = (int)(r + wRow)%WD_ROWS;
-                            int cIdx = (int)(c + wCol)%WD_COLS;
+                            rIdx = (int)(r + wRow)%WD_ROWS;
+                            cIdx = (int)(c + wCol)%WD_COLS;
                             this->Aw(r, c, z) += this->a(rIdx,cIdx,z);
                         }
-					}
+                    }
                 }
             }
         }
@@ -170,26 +172,32 @@ int CountingGrid::sumAllWindowsLoop()
 int CountingGrid::updateAw(Datapoint* dp)
 {
 	// changes only slices where the Datapoint has data
+    urowvec localWords;
     urowvec::iterator wordsIt;
-    
-        for( wordsIt = dp->getWords().begin(); wordsIt = dp->getWords().end(); wordsIt++)
+    int rIdx, cIdx;
+    int r, c, wRow, wCol;
+
+    localWords = dp->getWords();
+    //localWords.print("Words:");
+        for( wordsIt = localWords.begin(); wordsIt != localWords.end(); wordsIt++)
         {
+            //cout<<"Word: "<<*wordsIt<<endl;
             this->Aw.slice(*wordsIt).fill(0);
             
-            for (int r = 0; r < CG_ROWS; r++)
+            for (c = 0; c < CG_COLS; c++)
             {
-                for (int c = 0; c < CG_COLS; c++)
+                for (r = 0; r < CG_ROWS; r++)
                 {
-					for (int wRow = 0; wRow < WD_ROWS; wRow++)
-					{
+                    for (wRow = 0; wRow < WD_ROWS; wRow++)
+                    {
 
-                        for (int wCol = 0; wCol < WD_COLS; wCol++)
+                        for (wCol = 0; wCol < WD_COLS; wCol++)
                         {
-                            int rIdx = (int)(r + wRow)%WD_ROWS;
-                            int cIdx = (int)(c + wCol)%WD_COLS;
+                            rIdx = (int)(r + wRow)%WD_ROWS;
+                            cIdx = (int)(c + wCol)%WD_COLS;
                             this->Aw(r, c, *wordsIt) += this->a(rIdx,cIdx, *wordsIt);
                         }
-					}
+                    }
                 }
             }
         }
@@ -200,18 +208,18 @@ int CountingGrid::addDatapoint(Datapoint* dp )
 {
 	map<int, arma::sp_fmat> tmpMap = dp->getTokenLoc();
 
-        cout<<"update loop"<<endl;
+        //cout<<"update loop"<<endl;
 	for (map<int, arma::sp_fmat>::iterator it = tmpMap.begin(); it != tmpMap.end(); it++)
 	{
 		this->a.slice(it->first) += it->second;
 	}
 	// Aggiorno la variabile somma
-        cout<<"updating sum"<<endl;
+        //cout<<"updating sum"<<endl;
 	//this->sumAllWindowsLoop();
         this->updateAw(dp);
-        cout<<"computing logGamma"<<endl;
+        //cout<<"computing logGamma"<<endl;
 	this->computeLogGammaCG(dp->getTokenLoc());
-	cout<<"done"<<endl;
+	//cout<<"done"<<endl;
 	return 0;
 
 }
@@ -249,7 +257,7 @@ fcolvec CountingGrid::locationPosterior(Datapoint* dp)
 	T4 = arma::accu(this->logGsum) - this->logGsum;
 
 
-
+        mapdata tmpMap = dp->getCountsDict();
 
 	
 	//	fmat(CG_COLS, CG_ROWS, fill::zeros);
@@ -261,7 +269,7 @@ fcolvec CountingGrid::locationPosterior(Datapoint* dp)
 		for (int c = 0; c < CG_COLS; c++)
 		{
 
-			mapdata tmpMap = dp->getCountsDict();
+			
 			accumT2Key = (int) round(sum(fvec(Aw(span(r, r), span(c, c), span::all) - WD_ROWS*WD_COLS*BASE_PRIOR)));
 			accumT2 = sum(fvec(Aw(span(r, r), span(c, c), span::all) ));
 			for (mapdata::iterator featureIt = tmpMap.begin(); featureIt != tmpMap.end(); featureIt++)
@@ -277,8 +285,9 @@ fcolvec CountingGrid::locationPosterior(Datapoint* dp)
 				itLogGamma = this->gammaLookUp->find(keyTmpCount);
 				if (itLogGamma == this->gammaLookUp->end()){
 					float newGamma = lgammaf(trueCount);
-					this->gammaLookUp->insert(std::pair<float, float>(keyTmpCount, newGamma));
+					this->gammaLookUp->insert(std::pair<int, float>(keyTmpCount, newGamma));
 					T1(r, c) = T1(r, c) - this->logG(r, c, featureIt->first) + newGamma;
+                                        cout<<newGamma<<" not found"<<endl;
 				}
 				else{
 					T1(r, c) = T1(r, c) - this->logG(r, c, featureIt->first) + itLogGamma->second;

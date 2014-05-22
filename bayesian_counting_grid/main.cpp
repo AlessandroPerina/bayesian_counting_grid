@@ -33,8 +33,9 @@ int main()
 
  //	cout << "Minchia se funziona..." << endl;
         
-        DataReader* dr = new DataReader("C:\\Users\\APerina\\Documents\\DataCG\\science_nips_reduced.txt");
-        // DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/science_nips.txt");
+        //DataReader* dr = new DataReader("C:\\Users\\APerina\\Documents\\DataCG\\science_nips_reduced.txt");
+        //DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/science_nips.txt");
+        DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/trees.txt");
         dr->loadData();
 		cout << "Data Loaded" << endl;
         localData = dr->getData();
@@ -76,24 +77,17 @@ int main()
                 }
                 
                 //Compute Datapoint location posterior
-                cout<<"Computing location posterior"<<endl;
                 locPost = cg.locationPosterior(localData->at(currKey));
-                cout<<"done"<<endl;
                         
                 //Sample location
-                cout<<"Sampling location"<<endl;
                 localData->at(currKey)->sampleLocation(locPost, &rng);
-                cout<<"done"<<endl;
 
                 //Map Datapoint to grid (distribute token)
-                cout<<"Mapping datapoint to CG"<<endl;
 		localData->at(currKey)->sampleTokenLocation(&cg, &rng);
-                cout<<"done"<<endl;
 
                 //Add Datapoint to Counting Grid and update counts
-                cout<<"Adding datapoint"<<endl;
                 cg.addDatapoint(localData->at(currKey));
-                cout<<"done"<<endl;
+                cout<<"Datapoint "<<currKey<<" [it: "<<iterId <<"]"<<endl;
             }
 	cout << "Iterazione " << iterId << " Completata" << endl;
         }

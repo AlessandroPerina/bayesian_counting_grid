@@ -53,8 +53,9 @@ typedef std::map<int,int> mapdata;
 #define WD_ROWS 5
 #define WD_COLS 5
 // #define Z 20
+#define Z 128
 //#define Z 24678
-#define Z 18797
+//#define Z 18797
 #define BASE_PRIOR 0.1
 #define ASSIGN_TOKEN true
 
