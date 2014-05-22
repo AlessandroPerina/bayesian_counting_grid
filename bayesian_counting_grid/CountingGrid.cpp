@@ -7,8 +7,8 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 	this->gammaLookUp = gl;
 
 	this->a = fcube(CG_ROWS, CG_COLS, Z);
-	this->a = floor( 5 * arma::randu<fcube>(CG_ROWS, CG_COLS, Z)) + BASE_PRIOR;
-	// this->a.fill(BASE_PRIOR);
+	//this->a = floor( 5 * arma::randu<fcube>(CG_ROWS, CG_COLS, Z)) + BASE_PRIOR;
+	this->a.fill(BASE_PRIOR);
 
 	this->Aw = fcube(CG_ROWS, CG_COLS, Z);
 	this->Aw.fill(0);
@@ -19,7 +19,7 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 	this->logGsum = fmat(CG_ROWS, CG_COLS);
 	this->logGsum.fill(0);
 
-	// pad a
+	/*
 	fcube tmp = fcube(CG_ROWS+WD_ROWS-1, CG_COLS+WD_COLS-1, Z);
 	//tmp.fill(1);
         tmp.fill(BASE_PRIOR);
@@ -37,6 +37,26 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 			this->Aw(span(r, r), span(c, c), span::all) = tmp3;
 		}
 	}
+	*/
+
+	for (int z = 0; z < Z; z++)
+	{
+		for (int c = 0; c < CG_COLS; c++)
+		{
+			for (int r = 0; r < CG_ROWS; r++)
+			{
+				for (int wRow = 0; wRow < WD_ROWS; wRow++)
+				{
+					for (int wCol = 0; wCol < WD_COLS; wCol++)
+					{
+						int rIdx = (int)(r + wRow) % WD_ROWS;
+						int cIdx = (int)(c + wCol) % WD_COLS;
+						this->Aw(r, c, z) += this->a(rIdx, cIdx, z);
+					}
+				}
+			}
+		}
+	}
 
 	// Inefficiente ma va fatto una volta sola
 	for (int r = 0; r < CG_ROWS; r++)
@@ -46,6 +66,7 @@ CountingGrid::CountingGrid(map<int, float>* gl)
 			// Calcolo logGamma
 			for (int z = 0; z < Z; z++)
 			{
+
 				map<int, float>::iterator it;
 				float tmpA = this->Aw(r, c, z);
 				float costa = WD_ROWS*WD_COLS*BASE_PRIOR;
@@ -130,13 +151,16 @@ int CountingGrid::sumAllWindowsLoop()
             {
                 for (int c = 0; c < CG_COLS; c++)
                 {
-                    for (int wRow = 0; wRow < WD_ROWS; wRow++)
+					for (int wRow = 0; wRow < WD_ROWS; wRow++)
+					{
+
                         for (int wCol = 0; wCol < WD_COLS; wCol++)
                         {
                             int rIdx = (int)(r + wRow)%WD_ROWS;
                             int cIdx = (int)(c + wCol)%WD_COLS;
                             this->Aw(r, c, z) += this->a(rIdx,cIdx,z);
                         }
+					}
                 }
             }
         }
@@ -156,13 +180,16 @@ int CountingGrid::updateAw(Datapoint* dp)
             {
                 for (int c = 0; c < CG_COLS; c++)
                 {
-                    for (int wRow = 0; wRow < WD_ROWS; wRow++)
+					for (int wRow = 0; wRow < WD_ROWS; wRow++)
+					{
+
                         for (int wCol = 0; wCol < WD_COLS; wCol++)
                         {
                             int rIdx = (int)(r + wRow)%WD_ROWS;
                             int cIdx = (int)(c + wCol)%WD_COLS;
                             this->Aw(r, c, *wordsIt) += this->a(rIdx,cIdx, *wordsIt);
                         }
+					}
                 }
             }
         }

@@ -33,10 +33,10 @@ int main()
 
  //	cout << "Minchia se funziona..." << endl;
         
-        //DataReader* dr = new DataReader("C:\\Users\\APerina\\Documents\\DataCG\\science.txt");
-        DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/science_nips.txt");
+        DataReader* dr = new DataReader("C:\\Users\\APerina\\Documents\\DataCG\\science_nips_reduced.txt");
+        // DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/science_nips.txt");
         dr->loadData();
-        
+		cout << "Data Loaded" << endl;
         localData = dr->getData();
         //d = localData->at(3);
 
