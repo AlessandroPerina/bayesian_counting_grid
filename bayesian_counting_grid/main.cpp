@@ -5,7 +5,7 @@
 
 int main()
 {
-	const int NO_GAMMAS = 5000;
+	const double NO_GAMMAS = 30000;
 	const float base_prior = BASE_PRIOR*WD_ROWS*WD_COLS;
 	map<int, float> gammaLookUp;
 	
@@ -48,6 +48,9 @@ int main()
         int currKey;
         int asgnIdx;
         
+        clock_t begin, end;
+        double time_spent;
+        
         int rowAsgn, colAsgn;
         
         CountingGrid cg = CountingGrid( &gammaLookUp );
@@ -57,7 +60,7 @@ int main()
         for(std::map<int,Datapoint*>::iterator it = localData->begin(); it != localData->end(); ++it)
             keysVec.push_back(it->first);
         
-        gibbsIter = 10;
+        gibbsIter = 1000;
         
         for (int iterId = 0; iterId < gibbsIter; iterId++)
         {
@@ -77,19 +80,43 @@ int main()
                 }
                 
                 //Compute Datapoint location posterior
-                locPost = cg.locationPosterior(localData->at(currKey));
-                        
+                //begin = clock();
+                //locPost = cg.locationPosterior(localData->at(currKey));
+                locPost = cg.locationPosteriorLoop(localData->at(currKey));
+                //locPost.print();
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
+                
                 //Sample location
+                //begin = clock();
                 localData->at(currKey)->sampleLocation(locPost, &rng);
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
 
                 //Map Datapoint to grid (distribute token)
+                //begin = clock();
 		localData->at(currKey)->sampleTokenLocation(&cg, &rng);
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
 
                 //Add Datapoint to Counting Grid and update counts
+                //begin = clock();
                 cg.addDatapoint(localData->at(currKey));
-                cout<<"Datapoint "<<currKey<<" [it: "<<iterId <<"]"<<endl;
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
+                //cout<<"Datapoint "<<currKey<<" [it: "<<iterId <<"]"<<endl;
             }
 	cout << "Iterazione " << iterId << " Completata" << endl;
+        if (iterId%10 == 0)
+        {
+            string filename;
+            filename = (string)"cg" + to_string(iterId) + (string)".cg";
+            cg.get_a().save(filename, raw_ascii);
+        }
         }
         
         

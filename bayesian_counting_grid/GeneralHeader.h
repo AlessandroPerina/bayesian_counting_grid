@@ -48,8 +48,8 @@ using namespace arma;
 typedef std::map<int,int> mapdata;
 
 #define DIM 2
-#define CG_ROWS 32
-#define CG_COLS 32
+#define CG_ROWS 78
+#define CG_COLS 56
 #define WD_ROWS 5
 #define WD_COLS 5
 // #define Z 20

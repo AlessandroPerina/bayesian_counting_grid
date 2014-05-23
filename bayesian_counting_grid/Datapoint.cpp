@@ -129,9 +129,12 @@ int Datapoint::sampleLocation(fcolvec p, boost::mt19937* rng){
     boost::random::discrete_distribution<> dist(z.begin(),z.end());    
     asgnIdx = dist(*rng);
     // cout<<asgnIdx<<endl;
-
+    //p.print("p");
+    //cout<<asgnIdx<<endl;
+    //cout<<(int) asgnIdx % CG_ROWS<<" -"<<(int) asgnIdx / CG_ROWS<<endl;
     //Convert linear index in valid location
     this->setLocation((int) asgnIdx % CG_ROWS, (int) asgnIdx / CG_ROWS);
+    //cout<<asgnIdx<<" r: "<<(int) asgnIdx % CG_ROWS<<" c: "<<(int) asgnIdx / CG_ROWS<<endl;
     //this->colMap = (int)asgnIdx / CG_ROWS;
     //this->rowMap = (int)asgnIdx % CG_ROWS;
     
@@ -162,11 +165,11 @@ int Datapoint::sampleTokenLocation(CountingGrid* cg, boost::mt19937* rng)
 			{
 				asgnIdx = dist(*rng);
 				//cout<<"asgnIdx: "<<asgnIdx<<endl;
-                                rowTok = (int)asgnIdx / WD_ROWS;
-				colTok = (int)asgnIdx % WD_ROWS;
+                                rowTok = (int)asgnIdx % WD_ROWS;
+				colTok = (int)asgnIdx / WD_ROWS;
                                 
-                                rowFinal = (int)(rowTok+this->rowMap) / CG_ROWS;
-                                colFinal = (int)(colTok+this->colMap) % CG_ROWS;
+                                rowFinal = (int)(rowTok+this->rowMap) % CG_ROWS;
+                                colFinal = (int)(colTok+this->colMap) % CG_COLS;
                                 
                                 //cout<<rowTok<<" "<<colTok<<endl;
                                 //cout<<itFeature->first<<endl;

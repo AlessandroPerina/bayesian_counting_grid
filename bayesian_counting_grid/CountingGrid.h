@@ -22,6 +22,8 @@ public:
 
 	//fmat locationPosterior( Datapoint* );
         fcolvec locationPosterior( Datapoint* );
+        fcolvec locationPosteriorLoop( Datapoint* );
+        fcolvec locationPosteriorLoop2( Datapoint* );
 	double computeEnergy( Datapoint* );
 
 	int printCg(int);
