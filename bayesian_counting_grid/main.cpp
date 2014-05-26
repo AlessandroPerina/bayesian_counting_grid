@@ -67,6 +67,7 @@ int main()
 
             //Shuffle keys vector to iterate over points in random order
             std::random_shuffle(keysVec.begin(), keysVec.end());
+            int t = 0;
             
             for (std::vector<int>::iterator it = keysVec.begin(); it != keysVec.end(); it++)
             {
@@ -83,7 +84,12 @@ int main()
                 //begin = clock();
                 //locPost = cg.locationPosterior(localData->at(currKey));
                 locPost = cg.locationPosteriorLoop(localData->at(currKey));
-                //locPost.print();
+                //locPost.t().print("locPost");
+                //cout<<endl<<endl<<sum(locPost)<<endl;
+                //t++;
+                //cout<<localData->at(currKey)->getCountsArray()<<endl;
+                //if (t == 2)
+                    //break;
                 //end = clock();
                 //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
                 //cout<<time_spent<<endl;
@@ -117,6 +123,7 @@ int main()
             filename = (string)"cg" + to_string(iterId) + (string)".cg";
             cg.get_a().save(filename, raw_ascii);
         }
+        //break;
         }
         
         
