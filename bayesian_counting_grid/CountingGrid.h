@@ -23,7 +23,9 @@ public:
 	//fmat locationPosterior( Datapoint* );
         fcolvec locationPosterior( Datapoint* );
         fcolvec locationPosteriorLoop( Datapoint* );
-        fcolvec locationPosteriorLoop2( Datapoint* );
+        fcolvec locationPosteriorLoopFast( Datapoint* );
+        fcolvec locationPosteriorLoopPar( Datapoint* );
+        std::map<int, arma::sp_fmat> findUpdateLoc(map<int, arma::sp_fmat>);
 	double computeEnergy( Datapoint* );
 
 	int printCg(int);
@@ -36,8 +38,10 @@ public:
 private:
 	fcube a;
 	fcube Aw;
-	fcube logG;
+	fmat Aw_sum;
+        fcube logG;
 	fmat logGsum;
+        fmat sum_logG;
 	map<int, float>* gammaLookUp;
 };
 

@@ -5,7 +5,7 @@
 
 int main()
 {
-	const double NO_GAMMAS = 30000;
+	//const double NO_GAMMAS = MAX_GAMMA;
 	const float base_prior = BASE_PRIOR*WD_ROWS*WD_COLS;
 	map<int, float> gammaLookUp;
 	
@@ -15,14 +15,16 @@ int main()
         std::map<int, Datapoint*>* localData;
         Datapoint* d;
 
-	for (int g = 0; g < NO_GAMMAS; g++)
+	for (int g = 0; g < MAX_GAMMA; g++)
 	{
-		int key = g;
-		float newGamma = lgammaf(g + base_prior);
-		gammaLookUp.insert(std::pair<int, float>(key, newGamma));
+		//int key = g;
+		//float newGamma = lgammaf(g + base_prior);
+		//gammaLookUp.insert(std::pair<int, float>(key, newGamma));
+                float newGamma = lgammaf((float)g);
+		gammaLookUp.insert(std::pair<int, float>(g, newGamma));
 	}
-	std::cout << "Gamma lookup initialized" << endl;
-	float gm = 10 + base_prior;
+	std::cout << "Gamma lookup initialized [" << gammaLookUp.size()<<"]"<<endl;
+	//float gm = 10 + base_prior;
 
 //	system("Pause");
 //
@@ -35,9 +37,11 @@ int main()
         
         //DataReader* dr = new DataReader("C:\\Users\\APerina\\Documents\\DataCG\\science_nips_reduced.txt");
         //DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/science_nips.txt");
-        DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/trees.txt");
+        //DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/trees.txt");
+        //DataReader* dr = new DataReader("/home/mzanotto/projects/code/Gibbs_CG/nips12.txt");
+        DataReader* dr = new DataReader(FILENAME);
         dr->loadData();
-		cout << "Data Loaded" << endl;
+        cout << "Data Loaded" << endl;
         localData = dr->getData();
         //d = localData->at(3);
 
@@ -54,7 +58,10 @@ int main()
         int rowAsgn, colAsgn;
         
         CountingGrid cg = CountingGrid( &gammaLookUp );
+        
+        cout<<"Counting Grid initialised"<<endl;
         fcolvec locPost;
+        
         
         //Load all map keys in a vector to simplify shuffling
         for(std::map<int,Datapoint*>::iterator it = localData->begin(); it != localData->end(); ++it)
@@ -81,40 +88,41 @@ int main()
                 }
                 
                 //Compute Datapoint location posterior
-                //begin = clock();
+                begin = clock();
                 //locPost = cg.locationPosterior(localData->at(currKey));
                 locPost = cg.locationPosteriorLoop(localData->at(currKey));
+                //locPost = cg.locationPosteriorLoopPar(localData->at(currKey));
                 //locPost.t().print("locPost");
                 //cout<<endl<<endl<<sum(locPost)<<endl;
                 //t++;
                 //cout<<localData->at(currKey)->getCountsArray()<<endl;
                 //if (t == 2)
                     //break;
-                //end = clock();
-                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                //cout<<time_spent<<endl;
+                end = clock();
+                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                cout<<time_spent<<endl;
                 
                 //Sample location
-                //begin = clock();
+                begin = clock();
                 localData->at(currKey)->sampleLocation(locPost, &rng);
-                //end = clock();
-                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                //cout<<time_spent<<endl;
+                end = clock();
+                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                cout<<time_spent<<endl;
 
                 //Map Datapoint to grid (distribute token)
-                //begin = clock();
+                begin = clock();
 		localData->at(currKey)->sampleTokenLocation(&cg, &rng);
-                //end = clock();
-                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                //cout<<time_spent<<endl;
+                end = clock();
+                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                cout<<time_spent<<endl;
 
                 //Add Datapoint to Counting Grid and update counts
-                //begin = clock();
+                begin = clock();
                 cg.addDatapoint(localData->at(currKey));
-                //end = clock();
-                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                //cout<<time_spent<<endl;
-                //cout<<"Datapoint "<<currKey<<" [it: "<<iterId <<"]"<<endl;
+                end = clock();
+                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                cout<<time_spent<<endl;
+                cout<<"Datapoint "<<currKey<<" [it: "<<iterId <<"]"<<endl;
             }
 	cout << "Iterazione " << iterId << " Completata" << endl;
         if (iterId%10 == 0)

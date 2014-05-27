@@ -26,19 +26,24 @@ int DataReader::loadData(){
     
     while ( getline (dataFile, dataLine) )
     {   
+        //cout<<dataLine<<endl;
+        
         tmpMap.clear();
     
         std::stringstream linestream(dataLine);
         while(getline(linestream, s, ' '))
         {
+            //cout<<s<<endl;
             sscanf((char*)s.c_str(), "%10d:%10d", &word, &count);
             tmpMap.insert(std::pair<int,int>(word, count));
         }
 
         convert << pointCounter;
         
-        
+        //cout<<pointCounter<<endl;
+        //cout<<"pre-point"<<endl;
         this->data.insert(std::pair<int, Datapoint*>(pointCounter, new Datapoint(tmpMap)));
+        //cout<<"post-point"<<endl;
         pointCounter++;
 
     }

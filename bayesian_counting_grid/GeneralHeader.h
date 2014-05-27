@@ -48,6 +48,7 @@ using namespace arma;
 typedef std::map<int,int> mapdata;
 
 #define DIM 2
+/*
 #define CG_ROWS 56
 #define CG_COLS 78
 #define WD_ROWS 5
@@ -57,8 +58,49 @@ typedef std::map<int,int> mapdata;
 //#define Z 24678
 //#define Z 18797
 #define BASE_PRIOR 1
-#define ASSIGN_TOKEN true
+*/
 
+/*
+//trees
+#define CG_ROWS 56
+#define CG_COLS 78
+#define WD_ROWS 5
+#define WD_COLS 5
+#define Z 128
+#define BASE_PRIOR 1
+#define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
+#define MAX_GAMMA MIN_GAMMA + 50000
+#define ASSIGN_TOKEN true
+#define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/trees.txt"
+*/
+
+
+//Science - NIPS
+#define CG_ROWS 32
+#define CG_COLS 32
+#define WD_ROWS 5
+#define WD_COLS 5
+#define Z 18797
+#define BASE_PRIOR 1
+#define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
+#define MAX_GAMMA MIN_GAMMA + 1000
+#define ASSIGN_TOKEN false
+#define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/science_nips.txt"
+
+
+/*
+//NIPS 12
+#define CG_ROWS 25
+#define CG_COLS 25
+#define WD_ROWS 4
+#define WD_COLS 4
+#define Z 13649
+#define BASE_PRIOR 1
+#define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
+#define MAX_GAMMA MIN_GAMMA+100000
+#define ASSIGN_TOKEN false
+#define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/nips12.txt"
+*/
 
 /*#ifndef DEFINE_CONST
 map<float, float> gammaLookUp;

@@ -11,6 +11,7 @@ Datapoint::Datapoint( mapdata counts )
 	this->nUniWords = this->countsDict.size();
 	// frowvec tmp = frowvec(this->nonZero); Controlla se funziona
 	this->countsArray  = zeros<frowvec>(  Z );
+        //cout<<"countArray initialised"<<endl;
 	this->words = zeros<urowvec>( this->nUniWords );
 
 	int k=0;
@@ -191,14 +192,15 @@ int Datapoint::sampleTokenLocation(CountingGrid* cg, boost::mt19937* rng)
 			
 			std::vector<double> z = conv_to< std::vector<double> >::from(aTmp);
 			boost::random::discrete_distribution<> dist(z.begin(), z.end());
-			this->tokenLoc[itFeature->first].clear();
+			//this->tokenLoc[itFeature->first].clear();
+                        this->tokenLoc[itFeature->first].zeros(CG_ROWS, CG_COLS);
 
 			asgnIdx = dist(*rng);
-			rowTok = (int)asgnIdx / WD_ROWS;
-			colTok = (int)asgnIdx % WD_COLS;
+			rowTok = (int)asgnIdx % WD_ROWS;
+			colTok = (int)asgnIdx / WD_COLS;
                         
-                        rowFinal = (int)(rowTok+this->rowMap) / CG_ROWS;
-                        colFinal = (int)(colTok+this->colMap) % CG_ROWS;
+                        rowFinal = (int)(rowTok+this->rowMap) % CG_ROWS;
+                        colFinal = (int)(colTok+this->colMap) % CG_COLS;
                         
 			//this->rowMap = (int)asgnIdx % CG_ROWS;
 			this->tokenLoc[itFeature->first](rowFinal, colFinal) = itFeature->second;
