@@ -7,21 +7,24 @@ int main()
 {
 	//const double NO_GAMMAS = MAX_GAMMA;
 	const float base_prior = BASE_PRIOR*WD_ROWS*WD_COLS;
-	map<int, float> gammaLookUp;
+	map<unsigned long, float> gammaLookUp;
 	
         boost::mt19937 rng;
         rng.seed(123);
 
-        std::map<int, Datapoint*>* localData;
+        std::map<unsigned long, Datapoint*>* localData;
         Datapoint* d;
 
-	for (int g = 0; g < MAX_GAMMA; g++)
+	for (unsigned long g = 0; g < MAX_GAMMA; g++)
 	{
 		//int key = g;
 		//float newGamma = lgammaf(g + base_prior);
 		//gammaLookUp.insert(std::pair<int, float>(key, newGamma));
                 float newGamma = lgammaf((float)g);
-		gammaLookUp.insert(std::pair<int, float>(g, newGamma));
+		//gammaLookUp.insert(std::pair<int, float>(g, newGamma));
+                gammaLookUp.insert(std::pair<unsigned long, float>(g, newGamma));
+                //if (g<100)
+                //    cout<<g<<endl;
 	}
 	std::cout << "Gamma lookup initialized [" << gammaLookUp.size()<<"]"<<endl;
 	//float gm = 10 + base_prior;
@@ -48,7 +51,7 @@ int main()
         //Gibbs Sampling
         
         int gibbsIter;
-        std::vector<int> keysVec;
+        std::vector<unsigned long> keysVec;
         int currKey;
         int asgnIdx;
         
@@ -64,19 +67,19 @@ int main()
         
         
         //Load all map keys in a vector to simplify shuffling
-        for(std::map<int,Datapoint*>::iterator it = localData->begin(); it != localData->end(); ++it)
+        for(std::map<unsigned long ,Datapoint*>::iterator it = localData->begin(); it != localData->end(); ++it)
             keysVec.push_back(it->first);
         
-        gibbsIter = 1000;
+        gibbsIter = 5000;
         
         for (int iterId = 0; iterId < gibbsIter; iterId++)
         {
 
             //Shuffle keys vector to iterate over points in random order
             std::random_shuffle(keysVec.begin(), keysVec.end());
-            int t = 0;
-            
-            for (std::vector<int>::iterator it = keysVec.begin(); it != keysVec.end(); it++)
+            //int t = 0;
+            begin = clock();
+            for (std::vector<unsigned long>::iterator it = keysVec.begin(); it != keysVec.end(); it++)
             {
                 currKey = *it;
                 if (localData->at(currKey)->checkAsgn() == 1)
@@ -88,44 +91,49 @@ int main()
                 }
                 
                 //Compute Datapoint location posterior
-                begin = clock();
+                //begin = clock();
                 //locPost = cg.locationPosterior(localData->at(currKey));
-                locPost = cg.locationPosteriorLoop(localData->at(currKey));
+                //locPost = cg.locationPosteriorLoop(localData->at(currKey));
+                //t++;
+                //cout<<t<<endl;
+                locPost = cg.locationPosteriorLoopFast(localData->at(currKey));
                 //locPost = cg.locationPosteriorLoopPar(localData->at(currKey));
                 //locPost.t().print("locPost");
                 //cout<<endl<<endl<<sum(locPost)<<endl;
-                //t++;
+                
                 //cout<<localData->at(currKey)->getCountsArray()<<endl;
                 //if (t == 2)
                     //break;
-                end = clock();
-                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                cout<<time_spent<<endl;
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
                 
                 //Sample location
-                begin = clock();
+                //begin = clock();
                 localData->at(currKey)->sampleLocation(locPost, &rng);
-                end = clock();
-                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                cout<<time_spent<<endl;
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
 
                 //Map Datapoint to grid (distribute token)
-                begin = clock();
+                //begin = clock();
 		localData->at(currKey)->sampleTokenLocation(&cg, &rng);
-                end = clock();
-                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                cout<<time_spent<<endl;
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
 
                 //Add Datapoint to Counting Grid and update counts
-                begin = clock();
+                //begin = clock();
                 cg.addDatapoint(localData->at(currKey));
-                end = clock();
-                time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-                cout<<time_spent<<endl;
-                cout<<"Datapoint "<<currKey<<" [it: "<<iterId <<"]"<<endl;
+                //end = clock();
+                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+                //cout<<time_spent<<endl;
+                //cout<<"Datapoint "<<currKey<<" [it: "<<iterId <<"]"<<endl;
             }
-	cout << "Iterazione " << iterId << " Completata" << endl;
-        if (iterId%10 == 0)
+        end = clock();
+        time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+        cout << "Iteration " << iterId << " completed in "<< time_spent<<" seconds"<<endl;
+        if (iterId%500 == 0)
         {
             string filename;
             filename = (string)"cg" + to_string(iterId) + (string)".cg";

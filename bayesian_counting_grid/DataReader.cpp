@@ -42,7 +42,7 @@ int DataReader::loadData(){
         
         //cout<<pointCounter<<endl;
         //cout<<"pre-point"<<endl;
-        this->data.insert(std::pair<int, Datapoint*>(pointCounter, new Datapoint(tmpMap)));
+        this->data.insert(std::pair<unsigned long, Datapoint*>(pointCounter, new Datapoint(tmpMap)));
         //cout<<"post-point"<<endl;
         pointCounter++;
 
@@ -52,6 +52,6 @@ int DataReader::loadData(){
 
 }
 
-std::map<int, Datapoint*>* DataReader::getData(){
+std::map<unsigned long, Datapoint*>* DataReader::getData(){
     return &this->data;   
 }

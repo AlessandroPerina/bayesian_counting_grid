@@ -83,10 +83,24 @@ typedef std::map<int,int> mapdata;
 #define Z 18797
 #define BASE_PRIOR 1
 #define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
-#define MAX_GAMMA MIN_GAMMA + 1000
+#define MAX_GAMMA MIN_GAMMA + 100000
 #define ASSIGN_TOKEN false
 #define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/science_nips.txt"
 
+
+/*
+//Science
+#define CG_ROWS 32
+#define CG_COLS 32
+#define WD_ROWS 5
+#define WD_COLS 5
+#define Z 24678
+#define BASE_PRIOR 1
+#define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
+#define MAX_GAMMA MIN_GAMMA + 1000
+#define ASSIGN_TOKEN false
+#define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/science.txt"
+*/
 
 /*
 //NIPS 12
@@ -97,9 +111,37 @@ typedef std::map<int,int> mapdata;
 #define Z 13649
 #define BASE_PRIOR 1
 #define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
-#define MAX_GAMMA MIN_GAMMA+100000
+#define MAX_GAMMA MIN_GAMMA+200000
 #define ASSIGN_TOKEN false
 #define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/nips12.txt"
+*/
+
+/*
+//NIPS 17
+#define CG_ROWS 25
+#define CG_COLS 25
+#define WD_ROWS 4
+#define WD_COLS 4
+#define Z 14036
+#define BASE_PRIOR 1
+#define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
+#define MAX_GAMMA MIN_GAMMA+100000
+#define ASSIGN_TOKEN false
+#define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/nips17.txt"
+*/
+
+/*
+//CNN
+#define CG_ROWS 25
+#define CG_COLS 25
+#define WD_ROWS 4
+#define WD_COLS 4
+#define Z 10122
+#define BASE_PRIOR 1
+#define MIN_GAMMA WD_ROWS*WD_COLS*Z*BASE_PRIOR
+#define MAX_GAMMA MIN_GAMMA+100000
+#define ASSIGN_TOKEN false
+#define FILENAME "/home/mzanotto/projects/code/Gibbs_CG/cnn.txt"
 */
 
 /*#ifndef DEFINE_CONST

@@ -118,6 +118,11 @@ int Datapoint::getSingleCountsDict(int id)
 	return this->countsDict[id];
 }
 
+int Datapoint::getNtokens()
+{
+	return this->nTokens;
+}
+
 int Datapoint::checkAsgn(){
     return this->isAssigned;
 }

@@ -8,11 +8,11 @@ public:
     DataReader(string data_filename);
     virtual ~DataReader();
     int loadData();
-    std::map<int, Datapoint*>* getData();
+    std::map<unsigned long, Datapoint*>* getData();
 
 private:
     string data_filename;
-    std::map<int, Datapoint*> data;
+    std::map<unsigned long, Datapoint*> data;
 };
 
 #endif	/* DATAREADER_H */

@@ -16,14 +16,15 @@ public:
 	int getnUniWords();
 	int getRow();
 	int getCol();
+        int getNtokens();
 	urowvec getWords();
 	mapdata getCountsDict();
 	int getSingleCountsDict(int);
 	frowvec getCountsArray();
 	map<int, sp_fmat> getTokenLoc();
-    int sampleLocation(fcolvec, boost::mt19937*);
+        int sampleLocation(fcolvec, boost::mt19937*);
 	int sampleTokenLocation(CountingGrid*, boost::mt19937*);
-    int checkAsgn();
+        int checkAsgn();
         
 private:
 	int isAssigned;
